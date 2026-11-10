@@ -1,0 +1,6 @@
+{
+  "appId": "com.fibla.sudokunoir",
+  "appName": "Sudoku Noir",
+  "webDir": "www",
+  "android": { "backgroundColor": "#07080d" }
+}

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Sudoku Noir</string>
+    <string name="title_activity_main">Sudoku Noir</string>
+    <string name="package_name">com.fibla.sudokunoir</string>
+    <string name="custom_url_scheme">com.fibla.sudokunoir</string>
+</resources>
