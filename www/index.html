@@ -21,7 +21,7 @@ body{background:radial-gradient(ellipse at 50% -20%,#2c3456 0%,#141829 40%,#0708
 #sky svg{width:100%;height:100%;display:block}
 #rain{position:fixed;inset:0;z-index:1;pointer-events:none}
 #blinds{position:fixed;inset:-20%;z-index:1;pointer-events:none;background:repeating-linear-gradient(-28deg,rgba(255,220,150,.035) 0 22px,transparent 22px 48px);mask-image:radial-gradient(ellipse at 20% 20%,#000 0%,transparent 60%);-webkit-mask-image:radial-gradient(ellipse at 20% 20%,#000 0%,transparent 60%)}
-#grain{position:fixed;inset:-50%;z-index:60;pointer-events:none;background-image:var(--noise);opacity:.07;animation:grain .9s steps(4) infinite}
+#grain{position:fixed;inset:-50%;z-index:60;pointer-events:none;background-image:var(--noise);opacity:.07;inset:0}
 @keyframes grain{0%{transform:translate(0,0)}25%{transform:translate(-3%,2%)}50%{transform:translate(2%,-3%)}75%{transform:translate(-2%,-1%)}}
 #vig{position:fixed;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse at 50% 45%,transparent 55%,rgba(0,0,0,.65) 100%)}
 #app{position:relative;z-index:5;max-width:480px;margin:0 auto;min-height:100vh;padding:10px 12px 22px;display:flex;flex-direction:column}
@@ -445,6 +445,13 @@ body[data-bg=desk] #sky,body[data-bg=shop] #sky,body[data-bg=reward] #sky,body[d
 .iconbtn.exitbtn{width:auto;padding:0 12px 0 7px;gap:3px;font-weight:700;font-size:14px;color:var(--gold);border-color:#6b5426;background:rgba(30,24,14,.9)}
 .logo.logoimg img{display:block;width:min(92%,440px);height:auto;margin:6px auto 0;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.6),0 0 0 1px rgba(201,162,74,.35)}
 .btn.exitapp{color:#e9b9a8;border-color:#5a2f2a;background:rgba(40,16,14,.55)}
+
+/* ===== Ahorro de batería ===== */
+body.saver #grain,body.saver #rain{display:none}
+body.saver .flick,body.saver .smoke,body.saver .logo h1 span,body.saver .note.cur,body.saver .tool.acc.pulse{animation:none!important}
+body.saver .ov,body.saver .badge-card{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+body.saver .ov{background:rgba(4,5,10,.9)}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 
 </style>
 </head>
@@ -1034,6 +1041,9 @@ const LIFE_RELICS=['cafe','placa','botiquin'];
 /* ---------- sonido: síntesis noir (sin archivos) ---------- */
 let AC=null,MASTER=null,SFX=null,MUS=null,RAIN=null,NOISE=null,musicOn=false,musicTimer=null,rainSrc=null;
 const on=k=>S.meta[k]!==false;
+const saver=()=>S.meta.saver!==false;
+const rainActive=()=>!document.hidden&&on('rainFx')&&!saver();
+function applySaver(){document.body.classList.toggle('saver',saver());if(window.rainFx)window.rainFx();}
 function ac(){
   try{
     if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();
@@ -1049,7 +1059,7 @@ function ac(){
 function env(g,t,a,peak,dec){g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(peak,t+a);g.gain.exponentialRampToValueAtTime(.0001,t+a+dec);}
 function osc(type,f,t,dur,peak,dest,f2){const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+dur);env(g,t,.006,peak,dur);o.connect(g);g.connect(dest||SFX);o.start(t);o.stop(t+dur+.08);}
 function noise(t,dur,peak,type,freq,q,dest,f2){const s=AC.createBufferSource();s.buffer=NOISE;const f=AC.createBiquadFilter();f.type=type;f.frequency.setValueAtTime(freq,t);if(f2)f.frequency.exponentialRampToValueAtTime(f2,t+dur);f.Q.value=q||1;const g=AC.createGain();env(g,t,.003,peak,dur);s.connect(f);f.connect(g);g.connect(dest||SFX);s.start(t,Math.random()*1.5);s.stop(t+dur+.08);}
-function piano(f,t,dur,peak,dest){osc('triangle',f,t,dur,peak,dest);osc('sine',f*2,t,dur*.6,peak*.35,dest);osc('sine',f*3.01,t,dur*.25,peak*.12,dest);}
+function piano(f,t,dur,peak,dest){osc('triangle',f,t,dur,peak,dest);if(saver())return;osc('sine',f*2,t,dur*.6,peak*.35,dest);osc('sine',f*3.01,t,dur*.25,peak*.12,dest);}
 function play(fn){if(!on('sound'))return;if(!ac())return;try{fn(AC.currentTime);}catch(e){}}
 const sfx={
  place:()=>play(t=>{noise(t,.035,.55,'bandpass',2600,1.8);osc('square',160,t,.025,.06);noise(t+.045,.03,.18,'bandpass',1400,2);}),
@@ -1067,7 +1077,7 @@ const BASS=[[73.42,87.31,98,110],[98,110,116.54,130.81],[116.54,110,98,87.31],[1
 let mStep=0,mNext=0;
 function scheduleMusic(){
   if(!AC||!musicOn)return;const spb=60/78;
-  while(mNext<AC.currentTime+.4){
+  while(mNext<AC.currentTime+1.2){
     const bar=Math.floor(mStep/4)%4,beat=mStep%4,t=mNext;
     osc('sine',BASS[bar][beat],t,spb*.9,.16,MUS);osc('triangle',BASS[bar][beat]*2,t,spb*.3,.03,MUS);
     noise(t,.09,beat%2?.05:.03,'bandpass',3500,.6,MUS);
@@ -1078,7 +1088,7 @@ function scheduleMusic(){
 function ramp(g,v,t){g.gain.cancelScheduledValues(AC.currentTime);g.gain.setValueAtTime(g.gain.value,AC.currentTime);g.gain.linearRampToValueAtTime(v,AC.currentTime+t);}
 function startMusic(){
   if(!on('music')||musicOn)return;if(!ac())return;musicOn=true;
-  ramp(MUS,.55,2.5);mNext=AC.currentTime+.1;clearInterval(musicTimer);musicTimer=setInterval(scheduleMusic,120);
+  ramp(MUS,.55,2.5);mNext=AC.currentTime+.1;clearInterval(musicTimer);musicTimer=setInterval(scheduleMusic,400);
 }
 function stopMusic(){if(!musicOn||!AC)return;musicOn=false;clearInterval(musicTimer);musicTimer=null;ramp(MUS,0,.6);}
 function startRain(){
@@ -1102,15 +1112,16 @@ function buzz(ms){if(!on('vib'))return;try{navigator.vibrate&&navigator.vibrate(
   const sky=document.createElement('div');sky.id='sky';sky.innerHTML=ART.skyline();document.body.prepend(sky);
   for(const id of ['blinds','vig','grain']){const d=document.createElement('div');d.id=id;document.body.appendChild(d);}
   const cv=document.createElement('canvas');cv.id='rain';document.body.prepend(cv);
-  const ctx2=cv.getContext('2d');let W,H,drops=[];
-  function size(){W=cv.width=innerWidth;H=cv.height=innerHeight;drops=[...Array(Math.round(W*H/9000))].map(()=>({x:Math.random()*W,y:Math.random()*H,l:8+Math.random()*16,v:7+Math.random()*7,a:.08+Math.random()*.22}));}
+  const ctx2=cv.getContext('2d');let W,H,drops=[],raf=0,last=0;
+  function size(){W=cv.width=innerWidth;H=cv.height=innerHeight;drops=[...Array(Math.round(W*H/16000))].map(()=>({x:Math.random()*W,y:Math.random()*H,l:8+Math.random()*16,v:10+Math.random()*9,a:.1+Math.random()*.22}));}
   size();addEventListener('resize',size);
-  let last=0,cleared=false;
-  (function loop(t){requestAnimationFrame(loop);if(document.hidden||t-last<33)return;last=t;
-    if(!on('rainFx')){if(!cleared){ctx2.clearRect(0,0,W,H);cleared=true;}return;}cleared=false;
-    ctx2.clearRect(0,0,W,H);ctx2.lineWidth=1;
-    for(const d of drops){ctx2.strokeStyle=`rgba(170,185,225,${d.a})`;ctx2.beginPath();ctx2.moveTo(d.x,d.y);ctx2.lineTo(d.x-d.l*.18,d.y+d.l);ctx2.stroke();d.y+=d.v;d.x-=d.v*.18;if(d.y>H){d.y=-20;d.x=Math.random()*W*1.1;}}
-  })(0);
+  function frame(t){raf=0;if(!rainActive())return;raf=requestAnimationFrame(frame);if(t-last<50)return;last=t;
+    ctx2.clearRect(0,0,W,H);ctx2.lineWidth=1;ctx2.strokeStyle='rgba(170,185,225,.22)';ctx2.beginPath();
+    for(const d of drops){ctx2.moveTo(d.x,d.y);ctx2.lineTo(d.x-d.l*.18,d.y+d.l);d.y+=d.v;d.x-=d.v*.18;if(d.y>H){d.y=-20;d.x=Math.random()*W*1.1;}}
+    ctx2.stroke();}
+  window.rainFx=()=>{if(rainActive()){cv.style.display='';if(!raf)raf=requestAnimationFrame(frame);}else{if(raf)cancelAnimationFrame(raf);raf=0;ctx2.clearRect(0,0,W,H);cv.style.display='none';}};
+  document.addEventListener('visibilitychange',()=>window.rainFx());
+  window.rainFx();
 })();
 
 /* ---------- utilidades UI ---------- */
@@ -1182,10 +1193,10 @@ function showThemes(){
     o.querySelector('#mX').onclick=closeModal;});
 }
 const SETIMG={sound:'sound',music:'music',rainSnd:'rain',rainFx:'rain',vib:'vib'};
-const SETTINGS=[['sound','🔊','Efectos de sonido','Teclas, papel, sellos y monedas'],['music','🎷','Música jazz','Banda sonora noir'],['rainSnd','🌧️','Sonido de lluvia','Lluvia de fondo'],['rainFx','💧','Lluvia en pantalla','Gotas animadas sobre el juego'],['vib','📳','Vibración','Al colocar, fallar y acertar']];
+const SETTINGS=[['saver','🔋','Ahorro de batería','Recomendado: sin lluvia animada ni efectos de fondo, música más ligera'],['sound','🔊','Efectos de sonido','Teclas, papel, sellos y monedas'],['music','🎷','Música jazz','Banda sonora noir'],['rainSnd','🌧️','Sonido de lluvia','Lluvia de fondo'],['rainFx','💧','Lluvia en pantalla','Gotas animadas sobre el juego'],['vib','📳','Vibración','Al colocar, fallar y acertar']];
 function showSettings(){
-  const draw=o=>{o.querySelector('#setList').innerHTML=SETTINGS.map(([k,e,n,d])=>`<button class="setrow" data-k="${k}"><span class="se">${SETIMG[k]?ART.icon(SETIMG[k]):e}</span><span class="grow"><b>${n}</b><small>${d}</small></span><span class="sw ${on(k)?'on':''}"><i></i></span></button>`).join('');
-    o.querySelectorAll('.setrow').forEach(b=>b.onclick=()=>{const k=b.dataset.k;S.meta[k]=!on(k);save();if(k==='music'||k==='rainSnd'||k==='sound')applyAudio();if(k==='sound'&&on('sound'))sfx.note();draw(o);});};
+  const draw=o=>{o.querySelector('#setList').innerHTML=SETTINGS.map(([k,e,n,d])=>`<button class="setrow" data-k="${k}"><span class="se">${k==='saver'?e:SETIMG[k]?ART.icon(SETIMG[k]):e}</span><span class="grow"><b>${n}</b><small>${d}</small></span><span class="sw ${on(k)?'on':''}"><i></i></span></button>`).join('');
+    o.querySelectorAll('.setrow').forEach(b=>b.onclick=()=>{const k=b.dataset.k;S.meta[k]=!(k==='saver'?saver():on(k));save();if(k==='saver'||k==='rainFx')applySaver();if(k==='music'||k==='rainSnd'||k==='sound')applyAudio();if(k==='sound'&&on('sound'))sfx.note();draw(o);});};
   modal(`<div class="paper tape col"><div class="serif center" style="font-size:22px">Ajustes</div><div class="col" id="setList" style="gap:6px"></div>
     <div class="row"><button class="btn paperbtn grow" id="allOff">🔇 Silenciar todo</button><button class="btn gold grow" id="setOk">Listo</button></div></div>`,o=>{
     draw(o);o.querySelector('#setOk').onclick=closeModal;
@@ -1787,6 +1798,7 @@ try{const A=capApp();if(A&&A.addListener){A.addListener('backButton',onBack);A.a
 /* ================= ARRANQUE ================= */
 document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});
 if(S.daily)S.daily.active=false;
+applySaver();
 renderMenu();
 
 </script>
