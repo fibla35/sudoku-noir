@@ -1064,7 +1064,7 @@ function piano(f,t,dur,peak,dest){osc('triangle',f,t,dur,peak,dest);if(saver())r
 /* sonidos grabados (assets/snd); si no cargan, se usa el sintetizador */
 const SB={},SNDV={place:.55,note:.6,stamp:.85,coin:.6,unit:.7,wrong:.55,win:.8,lose:.8,folder:.6};let CURS=null,sndLoading=false;
 function loadSounds(){if(sndLoading||!AC)return;sndLoading=true;
-  ['rain','music',...Object.keys(SNDV)].forEach(k=>fetch('assets/snd/'+k+'.mp3').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer();}).then(b=>new Promise((ok,ko)=>AC.decodeAudioData(b,ok,ko))).then(buf=>{SB[k]=buf;if(k==='rain'&&rainSrc&&!rainSrc._file){try{rainSrc.stop();}catch(e){}rainSrc=null;if(on('rainSnd'))startRain();}if(k==='music'&&musicOn&&!musSrc){musicOn=false;clearInterval(musicTimer);musicTimer=null;startMusic();}}).catch(()=>{}));}
+  ['rain','music_menu','music_case','music_boss',...Object.keys(SNDV)].forEach(k=>fetch('assets/snd/'+k+'.mp3').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer();}).then(b=>new Promise((ok,ko)=>AC.decodeAudioData(b,ok,ko))).then(buf=>{SB[k]=buf;if(k==='rain'&&rainSrc&&!rainSrc._file){try{rainSrc.stop();}catch(e){}rainSrc=null;if(on('rainSnd'))startRain();}if(k.startsWith('music_')&&musicOn)playTrack(true);}).catch(()=>{}));}
 function playBuf(k){const b=SB[k];if(!b)return false;try{const s=AC.createBufferSource(),g=AC.createGain();s.buffer=b;g.gain.value=SNDV[k]||.6;s.connect(g);g.connect(SFX);s.start();}catch(e){return false;}return true;}
 function play(fn){if(!on('sound'))return;if(!ac())return;if(CURS&&playBuf(CURS))return;try{fn(AC.currentTime);}catch(e){}}
 const sfx={
@@ -1094,12 +1094,21 @@ function scheduleMusic(){
     mStep++;mNext+=spb;}
 }
 function ramp(g,v,t){g.gain.cancelScheduledValues(AC.currentTime);g.gain.setValueAtTime(g.gain.value,AC.currentTime);g.gain.linearRampToValueAtTime(v,AC.currentTime+t);}
-function startMusic(){
-  if(!on('music')||musicOn)return;if(!ac())return;musicOn=true;
-  if(SB.music){try{musSrc=AC.createBufferSource();musSrc.buffer=SB.music;musSrc.loop=true;musSrc.loopStart=.05;musSrc.loopEnd=SB.music.duration-.05;musSrc.connect(MUS);musSrc.start(0,.05);ramp(MUS,.7,1.5);return;}catch(e){musSrc=null;}}
-  ramp(MUS,.55,2.5);mNext=AC.currentTime+.1;clearInterval(musicTimer);musicTimer=setInterval(scheduleMusic,400);
+/* música: varias pistas grabadas según la pantalla (menú, caso, caso final) */
+let wantTrack='menu',curTrack=null;
+const trackBuf=t=>SB['music_'+t]||(t==='boss'&&SB.music_case)||SB.music_menu||SB.music_case||null;
+function playTrack(force){
+  if(!musicOn||!AC)return;const buf=trackBuf(wantTrack);
+  if(!buf||(!force&&musSrc&&musSrc.buffer===buf))return;
+  if(musSrc&&musSrc.buffer===buf)return;
+  if(musSrc){const s=musSrc;try{s._g.gain.setTargetAtTime(0,AC.currentTime,.5);}catch(e){}setTimeout(()=>{try{s.stop();}catch(e){}},2500);}
+  try{const s=AC.createBufferSource(),g=AC.createGain();s.buffer=buf;s.loop=true;s.loopStart=.05;s.loopEnd=buf.duration-.05;g.gain.value=0;s.connect(g);g.connect(MUS);s._g=g;s.start(0,.05);g.gain.setTargetAtTime(1,AC.currentTime,.6);musSrc=s;curTrack=wantTrack;}catch(e){musSrc=null;}
 }
-function stopMusic(){if(!musicOn||!AC)return;musicOn=false;clearInterval(musicTimer);musicTimer=null;ramp(MUS,0,.6);
+function setTrack(t){if(t===wantTrack)return;wantTrack=t;playTrack();}
+function startMusic(){
+  if(!on('music')||musicOn)return;if(!ac())return;musicOn=true;ramp(MUS,.7,1);playTrack(true);
+}
+function stopMusic(){if(!musicOn||!AC)return;musicOn=false;ramp(MUS,0,.6);
   if(musSrc){const s=musSrc;musSrc=null;setTimeout(()=>{try{s.stop();}catch(e){}},700);}}
 function startRain(){
   if(!on('rainSnd')||!ac())return;
@@ -1137,7 +1146,7 @@ function buzz(ms){if(!on('vib'))return;try{navigator.vibrate&&navigator.vibrate(
 
 /* ---------- utilidades UI ---------- */
 const $=s=>document.querySelector(s);
-function setBg(k){document.body.dataset.bg=k||'';document.body.dataset.th=(S&&S.meta&&S.meta.theme)||'mansion';if(k!=='board')ART.setTheme('mansion');}
+function setBg(k){try{setTrack(k==='board'?((S.run&&S.run.cs&&S.run.cs.meta&&S.run.cs.meta.mod==='profesor'&&!(S.daily&&S.daily.active))?'boss':'case'):'menu');}catch(e){}document.body.dataset.bg=k||'';document.body.dataset.th=(S&&S.meta&&S.meta.theme)||'mansion';if(k!=='board')ART.setTheme('mansion');}
 function screen(html){app.classList.remove('enter');void app.offsetWidth;app.classList.add('enter');app.innerHTML=html;window.scrollTo(0,0);}
 function toast(msg,ms=1900){const old=$('.toast');if(old)old.remove();const t=document.createElement('div');t.className='toast';t.innerHTML=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),ms);}
 function floatTxt(txt,el){const r=el?el.getBoundingClientRect():{left:innerWidth/2,top:innerHeight/2,width:0};const f=document.createElement('div');f.className='float';f.textContent=txt;f.style.left=(r.left+r.width/2-20)+'px';f.style.top=(r.top-10)+'px';document.body.appendChild(f);setTimeout(()=>f.remove(),1000);}
@@ -1204,7 +1213,7 @@ function showThemes(){
     o.querySelector('#mX').onclick=closeModal;});
 }
 const SETIMG={sound:'sound',music:'music',rainSnd:'rain',rainFx:'rain',vib:'vib'};
-const SETTINGS=[['saver','🔋','Ahorro de batería','Recomendado: sin lluvia animada ni efectos de fondo, música más ligera'],['sound','🔊','Efectos de sonido','Teclas, papel, sellos y monedas'],['music','🎷','Música jazz','Banda sonora noir'],['rainSnd','🌧️','Sonido de lluvia','Lluvia de fondo'],['rainFx','💧','Lluvia en pantalla','Gotas animadas sobre el juego'],['vib','📳','Vibración','Al colocar, fallar y acertar']];
+const SETTINGS=[['saver','🔋','Ahorro de batería','Recomendado: sin lluvia animada ni efectos de fondo, música más ligera'],['sound','🔊','Efectos de sonido','Teclas, papel, sellos y monedas'],['music','🎷','Música','Banda sonora de misterio'],['rainSnd','🌧️','Sonido de lluvia','Lluvia de fondo'],['rainFx','💧','Lluvia en pantalla','Gotas animadas sobre el juego'],['vib','📳','Vibración','Al colocar, fallar y acertar']];
 function showSettings(){
   const draw=o=>{o.querySelector('#setList').innerHTML=SETTINGS.map(([k,e,n,d])=>`<button class="setrow" data-k="${k}"><span class="se">${k==='saver'?e:SETIMG[k]?ART.icon(SETIMG[k]):e}</span><span class="grow"><b>${n}</b><small>${d}</small></span><span class="sw ${on(k)?'on':''}"><i></i></span></button>`).join('');
     o.querySelectorAll('.setrow').forEach(b=>b.onclick=()=>{const k=b.dataset.k;S.meta[k]=!(k==='saver'?saver():on(k));save();if(k==='saver'||k==='rainFx')applySaver();if(k==='music'||k==='rainSnd'||k==='sound')applyAudio();if(k==='sound'&&on('sound'))sfx.note();draw(o);});};
