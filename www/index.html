@@ -453,6 +453,7 @@ body.saver .ov,body.saver .badge-card{backdrop-filter:none!important;-webkit-bac
 body.saver .ov{background:rgba(4,5,10,.9)}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 .setrow.saveslot.cur{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+#tm{contain:layout paint;font-variant-numeric:tabular-nums}
 
 </style>
 </head>
@@ -1055,7 +1056,7 @@ const rainActive=()=>!document.hidden&&on('rainFx')&&!saver();
 function applySaver(){document.body.classList.toggle('saver',saver());if(window.rainFx)window.rainFx();}
 function ac(){
   try{
-    if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();
+    if(!AC){const AX=window.AudioContext||window.webkitAudioContext;try{AC=new AX({latencyHint:'balanced'});}catch(e){AC=new AX();}
       MASTER=AC.createGain();MASTER.gain.value=.9;MASTER.connect(AC.destination);
       SFX=AC.createGain();SFX.gain.value=1;SFX.connect(MASTER);
       MUS=AC.createGain();MUS.gain.value=0;MUS.connect(MASTER);
@@ -1072,10 +1073,14 @@ function noise(t,dur,peak,type,freq,q,dest,f2){const s=AC.createBufferSource();s
 function piano(f,t,dur,peak,dest){osc('triangle',f,t,dur,peak,dest);if(saver())return;osc('sine',f*2,t,dur*.6,peak*.35,dest);osc('sine',f*3.01,t,dur*.25,peak*.12,dest);}
 /* sonidos grabados (assets/snd); si no cargan, se usa el sintetizador */
 const SB={},SNDV={place:.55,note:.6,stamp:.85,coin:.6,unit:.7,wrong:.55,win:.8,lose:.8,folder:.6};let CURS=null,sndLoading=false;
+const RAW={};let idleT=0;
+function idleAudio(){clearTimeout(idleT);if(musicOn||!AC)return;idleT=setTimeout(()=>{if(!musicOn&&AC&&AC.state==='running'){try{AC.suspend();}catch(e){}}},4000);}
 function loadSounds(){if(sndLoading||!AC)return;sndLoading=true;
-  ['music_menu','music_case','music_boss','music_mist2','music_anim',...Object.keys(SNDV)].forEach(k=>fetch('assets/snd/'+k+'.mp3').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer();}).then(b=>new Promise((ok,ko)=>AC.decodeAudioData(b,ok,ko))).then(buf=>{SB[k]=buf;if(k==='rain'&&rainSrc&&!rainSrc._file){try{rainSrc.stop();}catch(e){}rainSrc=null;if(false)startRain();}if(k.startsWith('music_')&&musicOn)playTrack(true);}).catch(()=>{}));}
-function playBuf(k){const b=SB[k];if(!b)return false;try{const s=AC.createBufferSource(),g=AC.createGain();s.buffer=b;g.gain.value=SNDV[k]||.6;s.connect(g);g.connect(SFX);s.start();}catch(e){return false;}return true;}
-function play(fn){if(!on('sound'))return;if(!ac())return;if(CURS&&playBuf(CURS))return;try{fn(AC.currentTime);}catch(e){}}
+  const get=k=>fetch('assets/snd/'+k+'.mp3').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer();});
+  ['music_menu','music_case','music_boss','music_mist2','music_anim'].forEach(k=>get(k).then(ab=>{RAW[k]=ab;if(musicOn)playTrack();}).catch(()=>{}));
+  Object.keys(SNDV).forEach(k=>get(k).then(b=>new Promise((ok,ko)=>AC.decodeAudioData(b,ok,ko))).then(buf=>{SB[k]=buf;}).catch(()=>{}));}
+function playBuf(k){const b=SB[k];if(!b)return false;idleAudio();try{const s=AC.createBufferSource(),g=AC.createGain();s.buffer=b;g.gain.value=SNDV[k]||.6;s.connect(g);g.connect(SFX);s.start();}catch(e){return false;}return true;}
+function play(fn){if(!on('sound'))return;if(!ac())return;if(CURS&&playBuf(CURS))return;idleAudio();try{fn(AC.currentTime);}catch(e){}}
 const sfx={
  place:()=>play(t=>{noise(t,.035,.55,'bandpass',2600,1.8);osc('square',160,t,.025,.06);noise(t+.045,.03,.18,'bandpass',1400,2);}),
  note:()=>play(t=>noise(t,.14,.16,'bandpass',4200,.8,null,1800)),
@@ -1106,21 +1111,25 @@ function ramp(g,v,t){g.gain.cancelScheduledValues(AC.currentTime);g.gain.setValu
 /* música: varias pistas grabadas según la pantalla (menú, caso, caso final) */
 let wantTrack='menu',curTrack=null;
 const MUSICS=[['case','Pasos en la sombra','por defecto'],['mist2','Niebla','más misterio'],['anim','Persecución','más animada'],['menu','Mansión 1926','misterio elegante']];
-const pickTrack=()=>{const m=S.meta.track||'case';return wantTrack==='case'&&m!=='case'&&SB['music_'+m]?m:wantTrack;};
-const trackBuf=t=>SB['music_'+t]||(t==='boss'&&SB.music_case)||SB.music_menu||SB.music_case||null;
-function playTrack(force){
-  if(!musicOn||!AC)return;const buf=trackBuf(pickTrack());
-  if(!buf||(!force&&musSrc&&musSrc.buffer===buf))return;
-  if(musSrc&&musSrc.buffer===buf)return;
-  if(musSrc){const s=musSrc;try{s._g.gain.setTargetAtTime(0,AC.currentTime,.5);}catch(e){}setTimeout(()=>{try{s.stop();}catch(e){}},2500);}
-  try{const s=AC.createBufferSource(),g=AC.createGain();s.buffer=buf;s.loop=true;s.loopStart=.05;s.loopEnd=buf.duration-.05;g.gain.value=0;s.connect(g);g.connect(MUS);s._g=g;s.start(0,.05);g.gain.setTargetAtTime(1,AC.currentTime,.6);musSrc=s;curTrack=wantTrack;}catch(e){musSrc=null;}
+const hasT=t=>!!(RAW['music_'+t]||SB['music_'+t]);
+const pickTrack=()=>{const m=S.meta.track||'case';return wantTrack==='case'&&m!=='case'&&hasT(m)?m:wantTrack;};
+const resolveT=t=>hasT(t)?t:(t==='boss'&&hasT('case'))?'case':hasT('menu')?'menu':hasT('case')?'case':null;
+let decoding=null;
+function freeMusic(keep){for(const k in SB)if(k.startsWith('music_')&&k!=='music_'+keep)delete SB[k];}
+function playTrack(){
+  if(!musicOn||!AC)return;const t=resolveT(pickTrack());if(!t)return;
+  if(musSrc&&curTrack===t)return;
+  const key='music_'+t,buf=SB[key];
+  if(!buf){if(decoding===key)return;decoding=key;AC.decodeAudioData(RAW[key].slice(0),b=>{SB[key]=b;decoding=null;playTrack();},()=>{decoding=null;});return;}
+  if(musSrc){const s=musSrc;try{s._g.gain.setTargetAtTime(0,AC.currentTime,.5);}catch(e){}setTimeout(()=>{try{s.stop();}catch(e){}freeMusic(curTrack);},2600);}
+  try{const s=AC.createBufferSource(),g=AC.createGain();s.buffer=buf;s.loop=true;s.loopStart=.05;s.loopEnd=buf.duration-.05;g.gain.value=0;s.connect(g);g.connect(MUS);s._g=g;s.start(0,.05);g.gain.setTargetAtTime(1,AC.currentTime,.6);musSrc=s;curTrack=t;}catch(e){musSrc=null;}
 }
 function setTrack(t){if(t===wantTrack)return;wantTrack=t;playTrack();}
 function startMusic(){
-  if(!on('music')||musicOn)return;if(!ac())return;musicOn=true;ramp(MUS,.7,1);playTrack(true);
+  if(!on('music')||musicOn)return;if(!ac())return;musicOn=true;clearTimeout(idleT);ramp(MUS,.7,1);playTrack();
 }
 function stopMusic(){if(!musicOn||!AC)return;musicOn=false;ramp(MUS,0,.6);
-  if(musSrc){const s=musSrc;musSrc=null;setTimeout(()=>{try{s.stop();}catch(e){}},700);}}
+  if(musSrc){const s=musSrc;musSrc=null;curTrack=null;setTimeout(()=>{try{s.stop();}catch(e){}freeMusic('');},700);}idleAudio();}
 function startRain(){
   return; /* sonido de lluvia eliminado */
   if(!false||!ac())return;
@@ -1233,7 +1242,7 @@ function showSettings(){
     <div class="row"><button class="btn paperbtn grow" id="allOff">🔇 Silenciar todo</button><button class="btn gold grow" id="setOk">Listo</button></div><button class="setrow" id="bSlots"><span class="se">🕵️</span><span class="grow"><b>Partida ${SLOT} en uso</b><small>Tienes 3 partidas guardadas · toca para cambiar</small></span></button></div>`,o=>{
     draw(o);o.querySelector('#setOk').onclick=closeModal;
     o.querySelector('#bSlots').onclick=showSlots;
-    o.querySelector('#musPick').onclick=()=>{const avail=MUSICS.filter(x=>x[0]==='case'||SB['music_'+x[0]]||!AC);const i=avail.findIndex(x=>x[0]===(S.meta.track||'case'));S.meta.track=avail[(i+1)%avail.length][0];save();if(!on('music')){S.meta.music=true;applyAudio();}else playTrack(true);draw(o);};
+    o.querySelector('#musPick').onclick=()=>{const avail=MUSICS.filter(x=>x[0]==='case'||hasT(x[0])||!AC);const i=avail.findIndex(x=>x[0]===(S.meta.track||'case'));S.meta.track=avail[(i+1)%avail.length][0];save();if(!on('music')){S.meta.music=true;applyAudio();}else playTrack();draw(o);};
     o.querySelector('#allOff').onclick=()=>{['sound','music','rainSnd'].forEach(k=>S.meta[k]=false);save();applyAudio();draw(o);toast('🔇 Todo el sonido desactivado');};});
 }
 function showSlots(){
@@ -1837,7 +1846,7 @@ function onBack(){
   stopTimer();save();renderMenu();
 }
 function audioPause(){save();try{if(AC)AC.suspend();}catch(e){}}
-function audioResume(){try{if(AC&&(on('music')||false||on('sound')))AC.resume();}catch(e){}}
+function audioResume(){try{if(AC&&musicOn)AC.resume();}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)audioPause();else audioResume();});
 try{const A=capApp();if(A&&A.addListener){A.addListener('backButton',onBack);A.addListener('pause',audioPause);A.addListener('resume',audioResume);}}catch(e){}
 
