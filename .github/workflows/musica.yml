@@ -1,0 +1,26 @@
+name: Descargar musica CC0
+on:
+  push:
+    branches: [musica]
+jobs:
+  get:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar
+        run: |
+          mkdir out && cd out
+          for p in unsolved-investigation suspicious-loop evil-awaits determined-pursuit-epic-orchestra-loop mysterious-ambience-song21 mystery2 creepy investigating-a-crime-at-night; do
+            curl -sL "https://opengameart.org/content/$p" -o "$p.html"
+            grep -oE 'https://opengameart.org/sites/default/files/[^"]+\.(ogg|mp3|wav|zip)' "$p.html" | sort -u > "$p.links"
+            grep -oE 'License\(s\):.{0,600}' "$p.html" | sed 's/<[^>]*>/ /g' | tr -s ' ' | head -c 400 > "$p.license" || true
+            echo "== $p"; cat "$p.links"; cat "$p.license"; echo
+          done
+          for p in *.links; do n=${p%.links}; mkdir -p "$n"; while read u; do curl -sL "$u" -o "$n/$(basename "$u")"; done < "$p"; done
+          sudo apt-get -qq install -y ffmpeg >/dev/null 2>&1 || true
+          for f in */*; do echo "$f $(ffprobe -v error -show_entries format=duration -of csv=p=0 "$f")"; done
+          for f in */*.wav */*.ogg */*.mp3; do [ -f "$f" ] && ffmpeg -v error -y -i "$f" -ac 2 -ar 44100 -b:a 128k "${f%.*}_c.mp3"; done
+          rm -f */*.wav */*.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: musica
+          path: out/
