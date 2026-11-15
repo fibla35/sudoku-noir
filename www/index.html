@@ -1064,7 +1064,7 @@ function piano(f,t,dur,peak,dest){osc('triangle',f,t,dur,peak,dest);if(saver())r
 /* sonidos grabados (assets/snd); si no cargan, se usa el sintetizador */
 const SB={},SNDV={place:.55,note:.6,stamp:.85,coin:.6,unit:.7,wrong:.55,win:.8,lose:.8,folder:.6};let CURS=null,sndLoading=false;
 function loadSounds(){if(sndLoading||!AC)return;sndLoading=true;
-  ['music_menu','music_case','music_boss',...Object.keys(SNDV)].forEach(k=>fetch('assets/snd/'+k+'.mp3').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer();}).then(b=>new Promise((ok,ko)=>AC.decodeAudioData(b,ok,ko))).then(buf=>{SB[k]=buf;if(k==='rain'&&rainSrc&&!rainSrc._file){try{rainSrc.stop();}catch(e){}rainSrc=null;if(false)startRain();}if(k.startsWith('music_')&&musicOn)playTrack(true);}).catch(()=>{}));}
+  ['music_menu','music_case','music_boss','music_mist2','music_anim',...Object.keys(SNDV)].forEach(k=>fetch('assets/snd/'+k+'.mp3').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer();}).then(b=>new Promise((ok,ko)=>AC.decodeAudioData(b,ok,ko))).then(buf=>{SB[k]=buf;if(k==='rain'&&rainSrc&&!rainSrc._file){try{rainSrc.stop();}catch(e){}rainSrc=null;if(false)startRain();}if(k.startsWith('music_')&&musicOn)playTrack(true);}).catch(()=>{}));}
 function playBuf(k){const b=SB[k];if(!b)return false;try{const s=AC.createBufferSource(),g=AC.createGain();s.buffer=b;g.gain.value=SNDV[k]||.6;s.connect(g);g.connect(SFX);s.start();}catch(e){return false;}return true;}
 function play(fn){if(!on('sound'))return;if(!ac())return;if(CURS&&playBuf(CURS))return;try{fn(AC.currentTime);}catch(e){}}
 const sfx={
@@ -1096,9 +1096,11 @@ function scheduleMusic(){
 function ramp(g,v,t){g.gain.cancelScheduledValues(AC.currentTime);g.gain.setValueAtTime(g.gain.value,AC.currentTime);g.gain.linearRampToValueAtTime(v,AC.currentTime+t);}
 /* música: varias pistas grabadas según la pantalla (menú, caso, caso final) */
 let wantTrack='menu',curTrack=null;
+const MUSICS=[['case','Pasos en la sombra','por defecto'],['mist2','Niebla','más misterio'],['anim','Persecución','más animada'],['menu','Mansión 1926','misterio elegante']];
+const pickTrack=()=>{const m=S.meta.track||'case';return wantTrack==='case'&&m!=='case'&&SB['music_'+m]?m:wantTrack;};
 const trackBuf=t=>SB['music_'+t]||(t==='boss'&&SB.music_case)||SB.music_menu||SB.music_case||null;
 function playTrack(force){
-  if(!musicOn||!AC)return;const buf=trackBuf(wantTrack);
+  if(!musicOn||!AC)return;const buf=trackBuf(pickTrack());
   if(!buf||(!force&&musSrc&&musSrc.buffer===buf))return;
   if(musSrc&&musSrc.buffer===buf)return;
   if(musSrc){const s=musSrc;try{s._g.gain.setTargetAtTime(0,AC.currentTime,.5);}catch(e){}setTimeout(()=>{try{s.stop();}catch(e){}},2500);}
@@ -1216,12 +1218,22 @@ function showThemes(){
 const SETIMG={sound:'sound',music:'music',rainSnd:'rain',rainFx:'rain',vib:'vib'};
 const SETTINGS=[['saver','🔋','Ahorro de batería','Recomendado: sin lluvia animada ni efectos de fondo, música más ligera'],['sound','🔊','Efectos de sonido','Teclas, papel, sellos y monedas'],['music','🎷','Música','Banda sonora de misterio'],['rainFx','💧','Lluvia en pantalla','Gotas animadas sobre el juego'],['vib','📳','Vibración','Al colocar, fallar y acertar']];
 function showSettings(){
-  const draw=o=>{o.querySelector('#setList').innerHTML=SETTINGS.map(([k,e,n,d])=>`<button class="setrow" data-k="${k}"><span class="se">${k==='saver'?e:SETIMG[k]?ART.icon(SETIMG[k]):e}</span><span class="grow"><b>${n}</b><small>${d}</small></span><span class="sw ${on(k)?'on':''}"><i></i></span></button>`).join('');
+  const draw=o=>{const mt=MUSICS.find(x=>x[0]===(S.meta.track||'case'))||MUSICS[0];o.querySelector('#musPick').innerHTML=`<span class="se">🎵</span><span class="grow"><b>Música en partida: ${mt[1]}</b><small>${mt[2]} · toca para cambiar</small></span>`;o.querySelector('#setList').innerHTML=SETTINGS.map(([k,e,n,d])=>`<button class="setrow" data-k="${k}"><span class="se">${k==='saver'?e:SETIMG[k]?ART.icon(SETIMG[k]):e}</span><span class="grow"><b>${n}</b><small>${d}</small></span><span class="sw ${on(k)?'on':''}"><i></i></span></button>`).join('');
     o.querySelectorAll('.setrow').forEach(b=>b.onclick=()=>{const k=b.dataset.k;S.meta[k]=!(k==='saver'?saver():on(k));save();if(k==='saver'||k==='rainFx')applySaver();if(k==='music'||k==='rainSnd'||k==='sound')applyAudio();if(k==='sound'&&on('sound'))sfx.note();draw(o);});};
-  modal(`<div class="paper tape col"><div class="serif center" style="font-size:22px">Ajustes</div><div class="col" id="setList" style="gap:6px"></div>
-    <div class="row"><button class="btn paperbtn grow" id="allOff">🔇 Silenciar todo</button><button class="btn gold grow" id="setOk">Listo</button></div></div>`,o=>{
+  modal(`<div class="paper tape col"><div class="serif center" style="font-size:22px">Ajustes</div><div class="col" id="setList" style="gap:6px"></div><button class="setrow" id="musPick"></button>
+    <div class="row"><button class="btn paperbtn grow" id="allOff">🔇 Silenciar todo</button><button class="btn gold grow" id="setOk">Listo</button></div><button class="btn ghost exitapp" id="bReset">🗑️ Borrar progreso y empezar de cero</button></div>`,o=>{
     draw(o);o.querySelector('#setOk').onclick=closeModal;
+    o.querySelector('#bReset').onclick=askReset;
+    o.querySelector('#musPick').onclick=()=>{const avail=MUSICS.filter(x=>x[0]==='case'||SB['music_'+x[0]]||!AC);const i=avail.findIndex(x=>x[0]===(S.meta.track||'case'));S.meta.track=avail[(i+1)%avail.length][0];save();if(!on('music')){S.meta.music=true;applyAudio();}else playTrack(true);draw(o);};
     o.querySelector('#allOff').onclick=()=>{['sound','music','rainSnd'].forEach(k=>S.meta[k]=false);save();applyAudio();draw(o);toast('🔇 Todo el sonido desactivado');};});
+}
+function askReset(){
+  modal(`<div class="paper tape col center" data-exit="1"><div class="serif" style="font-size:22px">¿Borrar todo el progreso?</div>
+   <div class="small">Se perderán la reputación, los rangos, la partida en curso y la racha del caso del día. Tus ajustes de sonido se mantienen.<br><b>No se puede deshacer.</b></div>
+   <div class="row"><button class="btn paperbtn grow" id="mNo">Cancelar</button><button class="btn red grow" id="mReset">Borrar</button></div></div>`,o=>{
+    o.querySelector('#mNo').onclick=showSettings;
+    o.querySelector('#mReset').onclick=()=>{const keepK=['sound','music','rainFx','vib','saver','track','livesOn'];const f=fresh();keepK.forEach(k=>{if(k in S.meta)f.meta[k]=S.meta[k];});f.meta.tut=true;
+      try{stopTimer();}catch(e){}S=f;save();closeModal();renderMenu();toast('Progreso borrado. ¡Nuevo comienzo, detective!');};});
 }
 function showRelics(){
   const list=Object.entries(RELICS).map(([k,r])=>`<div class="rcard ${unlocked(k)?'':'lock'}">${med(unlocked(k)?r.e:'🔒',true,unlocked(k)?k:null)}<div><div class="n">${r.n}</div><div class="d">${unlocked(k)?r.d:`Se desbloquea con ${r.unlock} ⭐ de reputación`}</div></div></div>`).join('');
