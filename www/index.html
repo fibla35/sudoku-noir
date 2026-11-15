@@ -1064,7 +1064,7 @@ function piano(f,t,dur,peak,dest){osc('triangle',f,t,dur,peak,dest);if(saver())r
 /* sonidos grabados (assets/snd); si no cargan, se usa el sintetizador */
 const SB={},SNDV={place:.55,note:.6,stamp:.85,coin:.6,unit:.7,wrong:.55,win:.8,lose:.8,folder:.6};let CURS=null,sndLoading=false;
 function loadSounds(){if(sndLoading||!AC)return;sndLoading=true;
-  ['rain','music_menu','music_case','music_boss',...Object.keys(SNDV)].forEach(k=>fetch('assets/snd/'+k+'.mp3').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer();}).then(b=>new Promise((ok,ko)=>AC.decodeAudioData(b,ok,ko))).then(buf=>{SB[k]=buf;if(k==='rain'&&rainSrc&&!rainSrc._file){try{rainSrc.stop();}catch(e){}rainSrc=null;if(on('rainSnd'))startRain();}if(k.startsWith('music_')&&musicOn)playTrack(true);}).catch(()=>{}));}
+  ['music_menu','music_case','music_boss',...Object.keys(SNDV)].forEach(k=>fetch('assets/snd/'+k+'.mp3').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer();}).then(b=>new Promise((ok,ko)=>AC.decodeAudioData(b,ok,ko))).then(buf=>{SB[k]=buf;if(k==='rain'&&rainSrc&&!rainSrc._file){try{rainSrc.stop();}catch(e){}rainSrc=null;if(false)startRain();}if(k.startsWith('music_')&&musicOn)playTrack(true);}).catch(()=>{}));}
 function playBuf(k){const b=SB[k];if(!b)return false;try{const s=AC.createBufferSource(),g=AC.createGain();s.buffer=b;g.gain.value=SNDV[k]||.6;s.connect(g);g.connect(SFX);s.start();}catch(e){return false;}return true;}
 function play(fn){if(!on('sound'))return;if(!ac())return;if(CURS&&playBuf(CURS))return;try{fn(AC.currentTime);}catch(e){}}
 const sfx={
@@ -1111,7 +1111,8 @@ function startMusic(){
 function stopMusic(){if(!musicOn||!AC)return;musicOn=false;ramp(MUS,0,.6);
   if(musSrc){const s=musSrc;musSrc=null;setTimeout(()=>{try{s.stop();}catch(e){}},700);}}
 function startRain(){
-  if(!on('rainSnd')||!ac())return;
+  return; /* sonido de lluvia eliminado */
+  if(!false||!ac())return;
   if(!rainSrc&&SB.rain){try{rainSrc=AC.createBufferSource();rainSrc.buffer=SB.rain;rainSrc._file=1;rainSrc.loop=true;rainSrc.loopStart=.06;rainSrc.loopEnd=SB.rain.duration-.06;rainSrc.connect(RAIN);rainSrc.start(0,.06);}catch(e){rainSrc=null;}}
   if(!rainSrc){try{rainSrc=AC.createBufferSource();rainSrc.buffer=NOISE;rainSrc.loop=true;const hp=AC.createBiquadFilter();hp.type='highpass';hp.frequency.value=900;const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=5200;rainSrc.connect(hp);hp.connect(lp);lp.connect(RAIN);rainSrc.start();}catch(e){rainSrc=null;}}
   ramp(RAIN,rainSrc&&rainSrc._file?.32:.03,2);
@@ -1120,10 +1121,10 @@ function stopRain(){if(!AC||!RAIN)return;ramp(RAIN,0,.5);}
 /* aplica los ajustes de sonido en cualquier momento */
 function applyAudio(){
   if(on('music'))startMusic();else stopMusic();
-  if(on('rainSnd'))startRain();else stopRain();
-  if(AC&&!on('music')&&!on('rainSnd')&&!on('sound'))setTimeout(()=>{if(!on('music')&&!on('rainSnd')&&!on('sound'))try{AC.suspend();}catch(e){}},800);
+  if(false)startRain();else stopRain();
+  if(AC&&!on('music')&&!false&&!on('sound'))setTimeout(()=>{if(!on('music')&&!false&&!on('sound'))try{AC.suspend();}catch(e){}},800);
 }
-document.addEventListener('pointerdown',()=>{if((on('music')&&!musicOn)||(on('rainSnd')&&!rainSrc))applyAudio();},{passive:true});
+document.addEventListener('pointerdown',()=>{if((on('music')&&!musicOn)||(false&&!rainSrc))applyAudio();},{passive:true});
 document.addEventListener('visibilitychange',()=>{if(!AC)return;if(document.hidden)AC.suspend&&AC.suspend();else AC.resume&&AC.resume();});
 function buzz(ms){if(!on('vib'))return;try{navigator.vibrate&&navigator.vibrate(ms);}catch(e){}}
 
@@ -1213,7 +1214,7 @@ function showThemes(){
     o.querySelector('#mX').onclick=closeModal;});
 }
 const SETIMG={sound:'sound',music:'music',rainSnd:'rain',rainFx:'rain',vib:'vib'};
-const SETTINGS=[['saver','🔋','Ahorro de batería','Recomendado: sin lluvia animada ni efectos de fondo, música más ligera'],['sound','🔊','Efectos de sonido','Teclas, papel, sellos y monedas'],['music','🎷','Música','Banda sonora de misterio'],['rainSnd','🌧️','Sonido de lluvia','Lluvia de fondo'],['rainFx','💧','Lluvia en pantalla','Gotas animadas sobre el juego'],['vib','📳','Vibración','Al colocar, fallar y acertar']];
+const SETTINGS=[['saver','🔋','Ahorro de batería','Recomendado: sin lluvia animada ni efectos de fondo, música más ligera'],['sound','🔊','Efectos de sonido','Teclas, papel, sellos y monedas'],['music','🎷','Música','Banda sonora de misterio'],['rainFx','💧','Lluvia en pantalla','Gotas animadas sobre el juego'],['vib','📳','Vibración','Al colocar, fallar y acertar']];
 function showSettings(){
   const draw=o=>{o.querySelector('#setList').innerHTML=SETTINGS.map(([k,e,n,d])=>`<button class="setrow" data-k="${k}"><span class="se">${k==='saver'?e:SETIMG[k]?ART.icon(SETIMG[k]):e}</span><span class="grow"><b>${n}</b><small>${d}</small></span><span class="sw ${on(k)?'on':''}"><i></i></span></button>`).join('');
     o.querySelectorAll('.setrow').forEach(b=>b.onclick=()=>{const k=b.dataset.k;S.meta[k]=!(k==='saver'?saver():on(k));save();if(k==='saver'||k==='rainFx')applySaver();if(k==='music'||k==='rainSnd'||k==='sound')applyAudio();if(k==='sound'&&on('sound'))sfx.note();draw(o);});};
@@ -1811,7 +1812,7 @@ function onBack(){
   stopTimer();save();renderMenu();
 }
 function audioPause(){save();try{if(AC)AC.suspend();}catch(e){}}
-function audioResume(){try{if(AC&&(on('music')||on('rainSnd')||on('sound')))AC.resume();}catch(e){}}
+function audioResume(){try{if(AC&&(on('music')||false||on('sound')))AC.resume();}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.hidden)audioPause();else audioResume();});
 try{const A=capApp();if(A&&A.addListener){A.addListener('backButton',onBack);A.addListener('pause',audioPause);A.addListener('resume',audioResume);}}catch(e){}
 
