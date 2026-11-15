@@ -452,6 +452,7 @@ body.saver .flick,body.saver .smoke,body.saver .logo h1 span,body.saver .note.cu
 body.saver .ov,body.saver .badge-card{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
 body.saver .ov{background:rgba(4,5,10,.9)}
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+.setrow.saveslot.cur{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
 
 </style>
 </head>
@@ -1027,9 +1028,17 @@ const LAST=9, SHOPS=[3,6], START_HINTS=3;
 const susName=d=>`${SUS[d].a} ${SUS[d].r}`;
 
 /* ---------- guardado ---------- */
-const KEY='sudoku_noir_v2';
+const SLOTK='sudoku_noir_slot';
+const keyOf=n=>n===1?'sudoku_noir_v2':'sudoku_noir_v2_s'+n;
+let SLOT=(()=>{try{const n=+localStorage.getItem(SLOTK);return n>=1&&n<=3?n:1;}catch(e){return 1;}})();
+let KEY=keyOf(SLOT);
 function fresh(){return{meta:{rep:0,runs:0,best:0,wins:0,cases:0,tut:false,sound:true,music:true,daily:{last:'',streak:0,best:0,results:{}}},run:null,daily:null};}
 let S=(()=>{try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.meta)return Object.assign(fresh(),s);}catch(e){}return fresh();})();
+function readSlot(n){try{const s=JSON.parse(localStorage.getItem(keyOf(n)));return s&&s.meta?s:null;}catch(e){return null;}}
+const SETK=['sound','music','rainFx','vib','saver','track'];
+function switchSlot(n){if(n===SLOT)return;save();const keep={};SETK.forEach(k=>{if(k in S.meta)keep[k]=S.meta[k];});
+  try{stopTimer();}catch(e){}SLOT=n;KEY=keyOf(n);try{localStorage.setItem(SLOTK,String(n));}catch(e){}
+  const s=readSlot(n);S=s?Object.assign(fresh(),s):fresh();if(!s)S.meta.tut=true;Object.assign(S.meta,keep);if(S.daily)S.daily.active=false;save();}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 [S.run&&S.run.cs,S.daily&&S.daily.cs].forEach(cs=>{if(cs&&cs.C&&!cs.C.np)cs.C.np=cs.C.cells.length;});
 const rankOf=r=>{let x=RANKS[0];for(const k of RANKS)if(r>=k[0])x=k;return x;};
@@ -1221,19 +1230,23 @@ function showSettings(){
   const draw=o=>{const mt=MUSICS.find(x=>x[0]===(S.meta.track||'case'))||MUSICS[0];o.querySelector('#musPick').innerHTML=`<span class="se">🎵</span><span class="grow"><b>Música en partida: ${mt[1]}</b><small>${mt[2]} · toca para cambiar</small></span>`;o.querySelector('#setList').innerHTML=SETTINGS.map(([k,e,n,d])=>`<button class="setrow" data-k="${k}"><span class="se">${k==='saver'?e:SETIMG[k]?ART.icon(SETIMG[k]):e}</span><span class="grow"><b>${n}</b><small>${d}</small></span><span class="sw ${on(k)?'on':''}"><i></i></span></button>`).join('');
     o.querySelectorAll('.setrow').forEach(b=>b.onclick=()=>{const k=b.dataset.k;S.meta[k]=!(k==='saver'?saver():on(k));save();if(k==='saver'||k==='rainFx')applySaver();if(k==='music'||k==='rainSnd'||k==='sound')applyAudio();if(k==='sound'&&on('sound'))sfx.note();draw(o);});};
   modal(`<div class="paper tape col"><div class="serif center" style="font-size:22px">Ajustes</div><div class="col" id="setList" style="gap:6px"></div><button class="setrow" id="musPick"></button>
-    <div class="row"><button class="btn paperbtn grow" id="allOff">🔇 Silenciar todo</button><button class="btn gold grow" id="setOk">Listo</button></div><button class="btn ghost exitapp" id="bReset">🗑️ Borrar progreso y empezar de cero</button></div>`,o=>{
+    <div class="row"><button class="btn paperbtn grow" id="allOff">🔇 Silenciar todo</button><button class="btn gold grow" id="setOk">Listo</button></div><button class="setrow" id="bSlots"><span class="se">🕵️</span><span class="grow"><b>Partida ${SLOT} en uso</b><small>Tienes 3 partidas guardadas · toca para cambiar</small></span></button></div>`,o=>{
     draw(o);o.querySelector('#setOk').onclick=closeModal;
-    o.querySelector('#bReset').onclick=askReset;
+    o.querySelector('#bSlots').onclick=showSlots;
     o.querySelector('#musPick').onclick=()=>{const avail=MUSICS.filter(x=>x[0]==='case'||SB['music_'+x[0]]||!AC);const i=avail.findIndex(x=>x[0]===(S.meta.track||'case'));S.meta.track=avail[(i+1)%avail.length][0];save();if(!on('music')){S.meta.music=true;applyAudio();}else playTrack(true);draw(o);};
     o.querySelector('#allOff').onclick=()=>{['sound','music','rainSnd'].forEach(k=>S.meta[k]=false);save();applyAudio();draw(o);toast('🔇 Todo el sonido desactivado');};});
 }
-function askReset(){
-  modal(`<div class="paper tape col center" data-exit="1"><div class="serif" style="font-size:22px">¿Borrar todo el progreso?</div>
-   <div class="small">Se perderán la reputación, los rangos, la partida en curso y la racha del caso del día. Tus ajustes de sonido se mantienen.<br><b>No se puede deshacer.</b></div>
-   <div class="row"><button class="btn paperbtn grow" id="mNo">Cancelar</button><button class="btn red grow" id="mReset">Borrar</button></div></div>`,o=>{
-    o.querySelector('#mNo').onclick=showSettings;
-    o.querySelector('#mReset').onclick=()=>{const keepK=['sound','music','rainFx','vib','saver','track','livesOn'];const f=fresh();keepK.forEach(k=>{if(k in S.meta)f.meta[k]=S.meta[k];});f.meta.tut=true;
-      try{stopTimer();}catch(e){}S=f;save();closeModal();renderMenu();toast('Progreso borrado. ¡Nuevo comienzo, detective!');};});
+function showSlots(){
+  const card=n=>{const s=n===SLOT?S:readSlot(n);const act=n===SLOT;
+    if(!s)return`<button class="setrow saveslot" data-s="${n}"><span class="se">📁</span><span class="grow"><b>Partida ${n}</b><small>Vacía · empieza de cero</small></span>${act?'<span class="small" style="color:var(--gold)">en uso</span>':''}</button>`;
+    const m=s.meta,rk=rankOf(m.rep||0),run=s.run?` · investigación: caso ${s.run.floor}/9`:'';
+    return`<button class="setrow saveslot ${act?'cur':''}" data-s="${n}"><span class="se">${act?'🕵️':'📁'}</span><span class="grow"><b>Partida ${n} · ${rk[1]}</b><small>⭐ ${m.rep||0} · ${m.cases||0} casos resueltos${run}</small></span>${act?'<span class="small" style="color:var(--gold)">en uso</span>':''}</button>`;};
+  modal(`<div class="paper tape col"><div class="serif center" style="font-size:22px">Partidas guardadas</div>
+    <div class="small center muted">Cada partida tiene su propio progreso. Tus ajustes de sonido son comunes.</div>
+    <div class="col" style="gap:6px">${[1,2,3].map(card).join('')}</div>
+    <button class="btn gold" id="mX">Cerrar</button></div>`,o=>{
+    o.querySelector('#mX').onclick=closeModal;
+    o.querySelectorAll(".saveslot").forEach(b=>b.onclick=()=>{const n=+b.dataset.s;if(n===SLOT){closeModal();return;}switchSlot(n);closeModal();renderMenu();toast(`🕵️ Partida ${n} cargada`);});});
 }
 function showRelics(){
   const list=Object.entries(RELICS).map(([k,r])=>`<div class="rcard ${unlocked(k)?'':'lock'}">${med(unlocked(k)?r.e:'🔒',true,unlocked(k)?k:null)}<div><div class="n">${r.n}</div><div class="d">${unlocked(k)?r.d:`Se desbloquea con ${r.unlock} ⭐ de reputación`}</div></div></div>`).join('');
