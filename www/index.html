@@ -464,7 +464,7 @@ body.saver .ov{background:rgba(4,5,10,.9)}
 @keyframes starpop{0%{transform:scale(0) rotate(-40deg);opacity:0}100%{transform:scale(1) rotate(0);opacity:1}}
 .starkey{color:#6d5d43;margin-top:-4px}
 .gstar{color:#c8921d}
-.nstars{font-size:18px;letter-spacing:2px;color:#f2b632;text-shadow:0 0 1px #5a3a08,0 1px 0 #5a3a08,0 0 6px rgba(255,190,60,.5);line-height:1;margin:2px 0}
+.nstars{display:flex;justify-content:center;gap:1px;line-height:1;margin:2px 0}.nstars img{width:20px;height:20px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.45))}.nstars img.off{opacity:.55}
 .nstars i{font-style:normal;color:rgba(80,60,30,.3)}
 .lvlup{background:rgba(201,162,74,.18);border:1px dashed #b08a3a;border-radius:8px;padding:8px 10px;text-align:center}
 .lvlbtn{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:10px 12px;border-radius:12px;border:1px solid rgba(201,162,74,.45);background:linear-gradient(180deg,rgba(60,20,20,.85),rgba(30,10,12,.9));color:#f3e2b6;font:inherit;cursor:pointer}
@@ -506,6 +506,22 @@ body.saver .cstars span.on{animation:none}
 .albpl b{display:block;font-size:12px;letter-spacing:.5px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .albpl small{display:block;font-size:11px;color:#6d5d43;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 body.saver .albnew{animation:none}
+
+.cstars img{width:38px;height:38px;display:block;filter:drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+.cstars.big img{width:56px;height:56px}
+.cstars span{color:inherit}
+.cstars span:not(.on) img{opacity:.6}
+.cstars span.on img{filter:drop-shadow(0 0 8px rgba(255,200,80,.65)) drop-shadow(0 2px 2px rgba(0,0,0,.35))}
+.lvlimg{width:40px;height:40px;display:block}
+.lvlbtn .se{width:40px;display:flex;align-items:center;justify-content:center}
+.lvlmini{width:18px;height:18px;vertical-align:-4px}
+.lvlbig{width:72px;height:72px;filter:drop-shadow(0 3px 4px rgba(0,0,0,.4));animation:starpop .5s .3s cubic-bezier(.3,1.6,.5,1) both}
+.bic{width:26px;height:26px;vertical-align:middle;margin-right:4px}
+.albhd{display:flex;align-items:center;justify-content:center;gap:8px}
+.albhdimg{width:40px;height:40px}
+.albtro{width:34px;height:34px;display:block;margin:4px auto 0}
+.tabtro{width:16px;height:16px;display:inline-block;vertical-align:middle}
+body.saver .lvlbig{animation:none}
 
 </style>
 </head>
@@ -1273,10 +1289,10 @@ function renderMenu(){setBg('menu');
   <div class="col" style="margin-top:14px">
     ${S.run?`<button class="btn gold" id="bCont">${ART.icon('play')} Continuar · caso ${S.run.floor}/${LAST}</button>`:''}
     <button class="themebtn" id="bTheme"><span class="tsc">${ART.scene(m.theme||'mansion')}</span><span class="tinfo"><small>ESCENARIO</small><b>${THEMES[m.theme||'mansion'].name}</b><em>${THEME_INFO[m.theme||'mansion'].price?'Expansión':'Incluido'} · cambiar ▸</em></span></button>
-    ${(m.lvlMax||0)>0?`<button class="lvlbtn" id="bLvl"><span class="se">🎚️</span><span class="grow"><b>Dificultad: ${LVLS[Math.min(m.lvl||0,m.lvlMax)][0]}</b><small>${Math.min(m.lvl||0,m.lvlMax)?LVLS[Math.min(m.lvl||0,m.lvlMax)][1]+' Y todo lo anterior.':'Has desbloqueado el modo Imposible · toca para cambiar'}</small></span><span class="lvlmax">${m.lvlMax}/10</span></button>`:''}
+    ${(m.lvlMax||0)>0?`<button class="lvlbtn" id="bLvl"><span class="se">${ART.img('lvl'+Math.min(m.lvl||0,m.lvlMax),'lvlimg')}</span><span class="grow"><b>Dificultad: ${LVLS[Math.min(m.lvl||0,m.lvlMax)][0]}</b><small>${Math.min(m.lvl||0,m.lvlMax)?LVLS[Math.min(m.lvl||0,m.lvlMax)][1]+' Y todo lo anterior.':'Has desbloqueado el modo Imposible · toca para cambiar'}</small></span><span class="lvlmax">${m.lvlMax}/10</span></button>`:''}
     <button class="btn ${S.run?'':'gold'}" id="bNew">${ART.icon('folder')} Nueva investigación</button>
     <button class="btn" id="bDaily">${ART.icon('cal')} Caso del día ${playedToday?'✅':''}<span class="small" style="color:var(--gold);margin-left:auto">🔥 ${streak}</span></button>
-    <button class="btn ghost albbtn" id="bAlbum">📖 Álbum de culpables<span class="small" style="color:var(--gold);margin-left:auto">${albCount()}/${ALB_ALL.length}</span></button>
+    <button class="btn ghost albbtn" id="bAlbum">${ART.img('ic_album','bic')} Álbum de culpables<span class="small" style="color:var(--gold);margin-left:auto">${albCount()}/${ALB_ALL.length}</span></button>
     <div class="row"><button class="btn ghost grow" id="bRelics">${ART.icon('bag')} Amuletos</button><button class="btn ghost grow" id="bHelp">${ART.icon('help')} Cómo jugar</button><button class="btn ghost" id="bCfg" aria-label="Ajustes">${ART.icon('cfg')}</button></div>
     <button class="btn ghost" id="bLives">${m.livesOn?'❤️ Modo con vidas: activado':'🕊️ Modo relajado: sin vidas'}<span class="small muted" style="margin-left:auto">cambiar</span></button>
     ${NATIVE?`<button class="btn ghost exitapp" id="bExit">${EXIT_IC} Salir del juego</button>`:''}
@@ -1390,7 +1406,7 @@ function renderMap(){setBg('desk');
       inner=`<div class="pin"></div>${ART.portrait(7)}${f>r.floor||f===r.floor?'':''}<div class="nn" style="margin-top:4px">El Profesor</div>${f!==r.floor?'<div class="q">?</div>':''}`;
       notes+=`<div class="note boss ${st} ${f===r.floor?'':'locked'}" data-f="${f}" style="left:${p.x}%;top:${p.y-62}px;margin-left:-22%;transform:rotate(${rot}deg);width:40%">${inner}</div>`;
     }else{
-      inner=`<div class="pin"></div><div class="nt">CASO Nº ${f}</div><div class="nn">${st==='future'?'Expediente sellado':caseTitle(f)}</div>${h&&h.st?`<div class="nstars">${'★'.repeat(h.st)}<i>${'★'.repeat(3-h.st)}</i></div>`:''}${h?`<div class="mug">${ART.portrait(h.s)}<span class="plcb">${ART.placePhoto(h.p,runTheme())}</span></div><span class="stamp done stimg">${ART.img('st_resuelto')}</span>`:''}`;
+      inner=`<div class="pin"></div><div class="nt">CASO Nº ${f}</div><div class="nn">${st==='future'?'Expediente sellado':caseTitle(f)}</div>${h&&h.st?`<div class="nstars">${[0,1,2].map(i=>ART.img(i<h.st?'ic_star_on':'ic_star_off',i<h.st?'':'off')).join('')}</div>`:''}${h?`<div class="mug">${ART.portrait(h.s)}<span class="plcb">${ART.placePhoto(h.p,runTheme())}</span></div><span class="stamp done stimg">${ART.img('st_resuelto')}</span>`:''}`;
       notes+=`<div class="note ${st}" data-f="${f}" style="left:${p.x}%;top:${p.y-(h?44:30)}px;margin-left:-22%;transform:rotate(${rot}deg)">${inner}</div>`;
     }
     if(f>1){const a=pos(f-1),b=p;path+=`M${a.x} ${a.y} Q${(a.x+b.x)/2} ${(a.y+b.y)/2+26} ${b.x} ${b.y} `;}
@@ -1398,7 +1414,7 @@ function renderMap(){setBg('desk');
   const tags=SHOPS.map(f=>{const a=pos(f),b=pos(f+1);return`<div class="shoptag" style="left:${(a.x+b.x)/2}%;top:${(a.y+b.y)/2+4}px">🛒 Mercado</div>`;}).join('');
   screen(`${topBar()}
    <div class="relics" style="min-height:36px">${r.relics.map(k=>`<span class="med ${ART.relic(k)?'mimg':''}" data-k="${k}">${ART.relic(k)||RELICS[k].e}</span>`).join('')||'<span class="small muted">Aún sin amuletos: los ganarás al cerrar casos.</span>'}</div>
-   <div class="themehead">${THEMES[runTheme()].name}<small>${THEMES[runTheme()].tag}${runLvl()?' · 🎚️ '+LVLS[runLvl()][0]:''}</small></div>
+   <div class="themehead">${THEMES[runTheme()].name}<small>${THEMES[runTheme()].tag}${runLvl()?' · '+ART.img('lvl'+runLvl(),'lvlmini')+' '+LVLS[runLvl()][0]:''}</small></div>
    <div class="cork" style="height:${H}px"><svg class="str" viewBox="0 0 100 ${H}" preserveAspectRatio="none"><path d="${path}" stroke="#b3201a" stroke-width="2.4" fill="none" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 2px 1px rgba(0,0,0,.5))"/></svg>${notes}${tags}</div>
    <button class="btn gold" id="bGo" style="position:sticky;bottom:12px;z-index:6">${ART.icon('lens')} ${r.floor===LAST?'Enfrentarse a El Profesor':`Abrir el caso ${r.floor}`}</button>`);
   bindHome();
@@ -1748,10 +1764,10 @@ function showAlbum(tab){
   const n=albCount(),tot=ALB_ALL.length;
   const card=id=>{const c=caught(id),s=SUS[id];return c?`<button class="albcard got" data-id="${id}"><div class="albph">${ART.portrait(id)}${c.n>1?`<span class="albn">×${c.n}</span>`:''}</div><div class="albpl"><b>${id===7?'EL PROFESOR':s.n.toUpperCase()}</b><small>${cap(s.r)}</small></div></button>`
     :`<div class="albcard"><div class="albph off">${ART.portrait(id)}<span class="albq">?</span></div><div class="albpl"><b>???</b><small>Sin fichar</small></div></div>`;};
-  modal(`<div class="paper tape col"><div class="serif center" style="font-size:22px">📖 Álbum de culpables</div>
+  modal(`<div class="paper tape col"><div class="serif center albhd" style="font-size:22px">${ART.img('ic_album','albhdimg')}<span>Álbum de culpables</span></div>
     <div class="small center" style="color:#6d5d43">Cada asesino que atrapas queda fichado aquí. Completa una página: <b>+${ALB_BONUS} ⭐ reputación</b>.</div>
     <div class="bar albbar"><i style="width:${Math.round(n/tot*100)}%"></i></div><div class="small center"><b>${n}/${tot}</b> culpables fichados</div>
-    <div class="albtabs">${ALB_PAGES.map((p,i)=>{const k=p[2].filter(x=>caught(x)).length,full=k===p[2].length;return`<button class="${i===pi?'on':''} ${full?'full':''}" data-t="${p[0]}">${p[1]}<small>${full?'✔':k+'/'+p[2].length}</small></button>`;}).join('')}</div>
+    <div class="albtabs">${ALB_PAGES.map((p,i)=>{const k=p[2].filter(x=>caught(x)).length,full=k===p[2].length;return`<button class="${i===pi?'on':''} ${full?'full':''}" data-t="${p[0]}">${p[1]}<small>${full?ART.img('ic_trophy','tabtro'):k+'/'+p[2].length}</small></button>`;}).join('')}</div>
     <div class="albgrid">${P[2].map(card).join('')}</div>
     <button class="btn gold" id="albOk">Cerrar</button></div>`,o=>{
     o.querySelector('#albOk').onclick=closeModal;
@@ -1767,7 +1783,7 @@ function verdictHTML(cs){
   <div class="small" style="color:#6d5d43">Estaba a solas con ${cs.meta.victim}.</div>`;
 }
 const caseStars=cs=>1+(!(cs.hintsUsed>0)?1:0)+(cs.wrongAcc===0?1:0);
-const starsHTML=(n,big)=>`<div class="cstars${big?' big':''}">${[0,1,2].map(i=>`<span class="${i<n?'on':''}" style="animation-delay:${.25+i*.18}s">★</span>`).join('')}</div>`;
+const starsHTML=(n,big)=>`<div class="cstars${big?' big':''}">${[0,1,2].map(i=>`<span class="${i<n?'on':''}" style="animation-delay:${.25+i*.18}s">${ART.img(i<n?'ic_star_on':'ic_star_off')}</span>`).join('')}</div>`;
 function solveCase(left){
   const {cs,daily}=ctx();const C=cs.C;
   const good=cs.placed.filter((c,p)=>c>=0&&!cs.locked[p]&&c===C.cells[p]).length,bad=cs.placed.filter((c,p)=>c>=0&&!cs.locked[p]&&c!==C.cells[p]).length;
@@ -1793,7 +1809,7 @@ function solveCase(left){
       ${verdictHTML(cs)}
       <div><span class="stamp stimg slam">${ART.img('st_cerrado')}</span></div>
       ${starsHTML(stars,true)}<div class="small starkey">★ resuelto · ★ sin pistas · ★ sin fallos al acusar</div>
-      ${albNew?`<div class="albnew">📸 Nueva ficha en tu Álbum de culpables${albNew.page?`<br><b>📖 ¡Página «${albNew.page}» completa! +${ALB_BONUS} ⭐</b>`:''}</div>`:''}
+      ${albNew?`<div class="albnew">📸 Nueva ficha en tu Álbum de culpables${albNew.page?`<br>${ART.img('ic_trophy','albtro')}<b>¡Página «${albNew.page}» completa! +${ALB_BONUS} ⭐</b>`:''}</div>`:''}
       <div style="text-align:left">
         <div class="kv"><span>Caso resuelto</span><b>+${base}</b></div>
         <div class="kv"><span>Acusación anticipada (${left} sin situar)</span><b>+${early}</b></div>
@@ -1886,11 +1902,11 @@ function endRun(win,abandon){setBg('city');
        <div class="kv"><span>Casos perfectos</span><b>${st.perfect}</b></div>
        <div class="kv"><span>Oro reunido</span><b>${ART.coin} ${st.gold}</b></div>
        <div class="kv"><span>Estrellas</span><b class="gstar">★ ${st.stars||0}/${LAST*3}</b></div>
-       ${L?`<div class="kv"><span>Dificultad</span><b>${LVLS[L][0]} (+${L*15}% reputación)</b></div>`:''}
+       ${L?`<div class="kv"><span>Dificultad</span><b>${ART.img('lvl'+L,'lvlmini')} ${LVLS[L][0]} (+${L*15}% reputación)</b></div>`:''}
        <div class="kv"><span><b>Reputación ganada</b></span><b>⭐ +${rep}</b></div>
      </div>
      ${rkA[1]!==rkB[1]?`<div class="row" style="justify-content:center">${ART.img('rank'+(1+RANKS.indexOf(rkA)),'rankimg big')}<div class="stamp" style="border-color:var(--gold2);color:var(--gold2)">ASCENSO: ${rkA[1]}</div></div>`:''}
-     ${lvlUp?`<div class="lvlup">🔓 Desbloqueado: <b>${LVLS[lvlUp][0]}</b><div class="small">${LVLS[lvlUp][1]}</div></div>`:''}
+     ${lvlUp?`<div class="lvlup">${ART.img('lvl'+lvlUp,'lvlbig')}<br>🔓 Desbloqueado: <b>${LVLS[lvlUp][0]}</b><div class="small">${LVLS[lvlUp][1]}</div></div>`:''}
      ${newUnlocks.map(([k,x])=>`<div class="row" style="justify-content:center">${med(x.e,false,k)} <span>Nuevo amuleto: <b>${x.n}</b></span></div>`).join('')}
      <button class="btn gold" id="bAgain">${ART.icon('folder')} Otra investigación</button>
      <button class="btn paperbtn" id="bMenu">Menú</button></div>`);
@@ -1942,7 +1958,7 @@ function showDailyResult(r,fresh){
       <div class="kv"><span>Racha diaria</span><b>🔥 ${S.meta.daily.streak} (mejor ${S.meta.daily.best})</b></div>
     </div>
     <pre style="background:rgba(160,120,60,.15);border:1px dashed #b9a57c;border-radius:4px;padding:8px;font-size:13px;white-space:pre-wrap;text-align:left;margin:0;font-family:'Special Elite',monospace">${shareText(r)}</pre>
-    <div class="row"><button class="btn gold grow" id="mShare">📤 Compartir</button><button class="btn paperbtn grow" id="mCopy">📋 Copiar</button></div>
+    <div class="row"><button class="btn gold grow" id="mShare">${ART.img('ic_share','bic')} Compartir</button><button class="btn paperbtn grow" id="mCopy">📋 Copiar</button></div>
     <div class="small" style="color:#6d5d43">Vuelve mañana para un caso nuevo.</div>
     <button class="btn paperbtn" id="mM">Menú</button></div>`,o=>{
       if(fresh)setTimeout(sfx.stamp,120);
@@ -2753,10 +2769,10 @@ function renderMenu(){setBg('menu');
   <div class="col" style="margin-top:14px">
     ${S.run?`<button class="btn gold" id="bCont">${ART.icon('play')} Continue · case ${S.run.floor}/${LAST}</button>`:''}
     <button class="themebtn" id="bTheme"><span class="tsc">${ART.scene(m.theme||'mansion')}</span><span class="tinfo"><small>SETTING</small><b>${THEMES[m.theme||'mansion'].name}</b><em>${THEME_INFO[m.theme||'mansion'].price?'Expansion':'Included'} · change ▸</em></span></button>
-    ${(m.lvlMax||0)>0?`<button class="lvlbtn" id="bLvl"><span class="se">🎚️</span><span class="grow"><b>Difficulty: ${LVLS[Math.min(m.lvl||0,m.lvlMax)][0]}</b><small>${Math.min(m.lvl||0,m.lvlMax)?LVLS[Math.min(m.lvl||0,m.lvlMax)][1]+' Plus everything before.':'You’ve unlocked Impossible mode · tap to change'}</small></span><span class="lvlmax">${m.lvlMax}/10</span></button>`:''}
+    ${(m.lvlMax||0)>0?`<button class="lvlbtn" id="bLvl"><span class="se">${ART.img('lvl'+Math.min(m.lvl||0,m.lvlMax),'lvlimg')}</span><span class="grow"><b>Difficulty: ${LVLS[Math.min(m.lvl||0,m.lvlMax)][0]}</b><small>${Math.min(m.lvl||0,m.lvlMax)?LVLS[Math.min(m.lvl||0,m.lvlMax)][1]+' Plus everything before.':'You’ve unlocked Impossible mode · tap to change'}</small></span><span class="lvlmax">${m.lvlMax}/10</span></button>`:''}
     <button class="btn ${S.run?'':'gold'}" id="bNew">${ART.icon('folder')} New investigation</button>
     <button class="btn" id="bDaily">${ART.icon('cal')} Case of the Day ${playedToday?'✅':''}<span class="small" style="color:var(--gold);margin-left:auto">🔥 ${streak}</span></button>
-    <button class="btn ghost albbtn" id="bAlbum">📖 Rogues’ Gallery<span class="small" style="color:var(--gold);margin-left:auto">${albCount()}/${ALB_ALL.length}</span></button>
+    <button class="btn ghost albbtn" id="bAlbum">${ART.img('ic_album','bic')} Rogues’ Gallery<span class="small" style="color:var(--gold);margin-left:auto">${albCount()}/${ALB_ALL.length}</span></button>
     <div class="row"><button class="btn ghost grow" id="bRelics">${ART.icon('bag')} Charms</button><button class="btn ghost grow" id="bHelp">${ART.icon('help')} How to play</button><button class="btn ghost" id="bCfg" aria-label="Settings">${ART.icon('cfg')}</button></div>
     <button class="btn ghost" id="bLives">${m.livesOn?'❤️ Lives mode: on':'🕊️ Relaxed mode: no lives'}<span class="small muted" style="margin-left:auto">change</span></button>
     ${NATIVE?`<button class="btn ghost exitapp" id="bExit">${EXIT_IC} Exit game</button>`:''}
@@ -2870,7 +2886,7 @@ function renderMap(){setBg('desk');
       inner=`<div class="pin"></div>${ART.portrait(7)}${f>r.floor||f===r.floor?'':''}<div class="nn" style="margin-top:4px">The Professor</div>${f!==r.floor?'<div class="q">?</div>':''}`;
       notes+=`<div class="note boss ${st} ${f===r.floor?'':'locked'}" data-f="${f}" style="left:${p.x}%;top:${p.y-62}px;margin-left:-22%;transform:rotate(${rot}deg);width:40%">${inner}</div>`;
     }else{
-      inner=`<div class="pin"></div><div class="nt">CASE No. ${f}</div><div class="nn">${st==='future'?'Sealed file':caseTitle(f)}</div>${h&&h.st?`<div class="nstars">${'★'.repeat(h.st)}<i>${'★'.repeat(3-h.st)}</i></div>`:''}${h?`<div class="mug">${ART.portrait(h.s)}<span class="plcb">${ART.placePhoto(h.p,runTheme())}</span></div><span class="stamp done">SOLVED</span>`:''}`;
+      inner=`<div class="pin"></div><div class="nt">CASE No. ${f}</div><div class="nn">${st==='future'?'Sealed file':caseTitle(f)}</div>${h&&h.st?`<div class="nstars">${[0,1,2].map(i=>ART.img(i<h.st?'ic_star_on':'ic_star_off',i<h.st?'':'off')).join('')}</div>`:''}${h?`<div class="mug">${ART.portrait(h.s)}<span class="plcb">${ART.placePhoto(h.p,runTheme())}</span></div><span class="stamp done">SOLVED</span>`:''}`;
       notes+=`<div class="note ${st}" data-f="${f}" style="left:${p.x}%;top:${p.y-(h?44:30)}px;margin-left:-22%;transform:rotate(${rot}deg)">${inner}</div>`;
     }
     if(f>1){const a=pos(f-1),b=p;path+=`M${a.x} ${a.y} Q${(a.x+b.x)/2} ${(a.y+b.y)/2+26} ${b.x} ${b.y} `;}
@@ -2878,7 +2894,7 @@ function renderMap(){setBg('desk');
   const tags=SHOPS.map(f=>{const a=pos(f),b=pos(f+1);return`<div class="shoptag" style="left:${(a.x+b.x)/2}%;top:${(a.y+b.y)/2+4}px">🛒 Market</div>`;}).join('');
   screen(`${topBar()}
    <div class="relics" style="min-height:36px">${r.relics.map(k=>`<span class="med ${ART.relic(k)?'mimg':''}" data-k="${k}">${ART.relic(k)||RELICS[k].e}</span>`).join('')||'<span class="small muted">No charms yet: you’ll earn them by closing cases.</span>'}</div>
-   <div class="themehead">${THEMES[runTheme()].name}<small>${THEMES[runTheme()].tag}${runLvl()?' · 🎚️ '+LVLS[runLvl()][0]:''}</small></div>
+   <div class="themehead">${THEMES[runTheme()].name}<small>${THEMES[runTheme()].tag}${runLvl()?' · '+ART.img('lvl'+runLvl(),'lvlmini')+' '+LVLS[runLvl()][0]:''}</small></div>
    <div class="cork" style="height:${H}px"><svg class="str" viewBox="0 0 100 ${H}" preserveAspectRatio="none"><path d="${path}" stroke="#b3201a" stroke-width="2.4" fill="none" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 2px 1px rgba(0,0,0,.5))"/></svg>${notes}${tags}</div>
    <button class="btn gold" id="bGo" style="position:sticky;bottom:12px;z-index:6">${ART.icon('lens')} ${r.floor===LAST?'Face the Professor':`Open case ${r.floor}`}</button>`);
   bindHome();
@@ -3228,10 +3244,10 @@ function showAlbum(tab){
   const n=albCount(),tot=ALB_ALL.length;
   const card=id=>{const c=caught(id),s=SUS[id];return c?`<button class="albcard got" data-id="${id}"><div class="albph">${ART.portrait(id)}${c.n>1?`<span class="albn">×${c.n}</span>`:''}</div><div class="albpl"><b>${id===7?'THE PROFESSOR':s.n.toUpperCase()}</b><small>${cap(s.r)}</small></div></button>`
     :`<div class="albcard"><div class="albph off">${ART.portrait(id)}<span class="albq">?</span></div><div class="albpl"><b>???</b><small>Not filed</small></div></div>`;};
-  modal(`<div class="paper tape col"><div class="serif center" style="font-size:22px">📖 Rogues’ Gallery</div>
+  modal(`<div class="paper tape col"><div class="serif center albhd" style="font-size:22px">${ART.img('ic_album','albhdimg')}<span>Rogues’ Gallery</span></div>
     <div class="small center" style="color:#6d5d43">Every killer you catch is filed here. Complete a page: <b>+${ALB_BONUS} ⭐ reputation</b>.</div>
     <div class="bar albbar"><i style="width:${Math.round(n/tot*100)}%"></i></div><div class="small center"><b>${n}/${tot}</b> culprits filed</div>
-    <div class="albtabs">${ALB_PAGES.map((p,i)=>{const k=p[2].filter(x=>caught(x)).length,full=k===p[2].length;return`<button class="${i===pi?'on':''} ${full?'full':''}" data-t="${p[0]}">${p[1]}<small>${full?'✔':k+'/'+p[2].length}</small></button>`;}).join('')}</div>
+    <div class="albtabs">${ALB_PAGES.map((p,i)=>{const k=p[2].filter(x=>caught(x)).length,full=k===p[2].length;return`<button class="${i===pi?'on':''} ${full?'full':''}" data-t="${p[0]}">${p[1]}<small>${full?ART.img('ic_trophy','tabtro'):k+'/'+p[2].length}</small></button>`;}).join('')}</div>
     <div class="albgrid">${P[2].map(card).join('')}</div>
     <button class="btn gold" id="albOk">Close</button></div>`,o=>{
     o.querySelector('#albOk').onclick=closeModal;
@@ -3247,7 +3263,7 @@ function verdictHTML(cs){
   <div class="small" style="color:#6d5d43">Was alone with ${cs.meta.victim}.</div>`;
 }
 const caseStars=cs=>1+(!(cs.hintsUsed>0)?1:0)+(cs.wrongAcc===0?1:0);
-const starsHTML=(n,big)=>`<div class="cstars${big?' big':''}">${[0,1,2].map(i=>`<span class="${i<n?'on':''}" style="animation-delay:${.25+i*.18}s">★</span>`).join('')}</div>`;
+const starsHTML=(n,big)=>`<div class="cstars${big?' big':''}">${[0,1,2].map(i=>`<span class="${i<n?'on':''}" style="animation-delay:${.25+i*.18}s">${ART.img(i<n?'ic_star_on':'ic_star_off')}</span>`).join('')}</div>`;
 function solveCase(left){
   const {cs,daily}=ctx();const C=cs.C;
   const good=cs.placed.filter((c,p)=>c>=0&&!cs.locked[p]&&c===C.cells[p]).length,bad=cs.placed.filter((c,p)=>c>=0&&!cs.locked[p]&&c!==C.cells[p]).length;
@@ -3273,7 +3289,7 @@ function solveCase(left){
       ${verdictHTML(cs)}
       <div><span class="stamp slam">CASE CLOSED</span></div>
       ${starsHTML(stars,true)}<div class="small starkey">★ solved · ★ no hints · ★ no wrong accusations</div>
-      ${albNew?`<div class="albnew">📸 New file in your Rogues’ Gallery${albNew.page?`<br><b>📖 Page «${albNew.page}» complete! +${ALB_BONUS} ⭐</b>`:''}</div>`:''}
+      ${albNew?`<div class="albnew">📸 New file in your Rogues’ Gallery${albNew.page?`<br>${ART.img('ic_trophy','albtro')}<b>Page «${albNew.page}» complete! +${ALB_BONUS} ⭐</b>`:''}</div>`:''}
       <div style="text-align:left">
         <div class="kv"><span>Case solved</span><b>+${base}</b></div>
         <div class="kv"><span>Early accusation (${left} unplaced)</span><b>+${early}</b></div>
@@ -3366,11 +3382,11 @@ function endRun(win,abandon){setBg('city');
        <div class="kv"><span>Perfect cases</span><b>${st.perfect}</b></div>
        <div class="kv"><span>Gold collected</span><b>${ART.coin} ${st.gold}</b></div>
        <div class="kv"><span>Stars</span><b class="gstar">★ ${st.stars||0}/${LAST*3}</b></div>
-       ${L?`<div class="kv"><span>Difficulty</span><b>${LVLS[L][0]} (+${L*15}% reputation)</b></div>`:''}
+       ${L?`<div class="kv"><span>Difficulty</span><b>${ART.img('lvl'+L,'lvlmini')} ${LVLS[L][0]} (+${L*15}% reputation)</b></div>`:''}
        <div class="kv"><span><b>Reputation earned</b></span><b>⭐ +${rep}</b></div>
      </div>
      ${rkA[1]!==rkB[1]?`<div class="row" style="justify-content:center">${ART.img('rank'+(1+RANKS.indexOf(rkA)),'rankimg big')}<div class="stamp" style="border-color:var(--gold2);color:var(--gold2)">PROMOTED: ${rkA[1]}</div></div>`:''}
-     ${lvlUp?`<div class="lvlup">🔓 Unlocked: <b>${LVLS[lvlUp][0]}</b><div class="small">${LVLS[lvlUp][1]}</div></div>`:''}
+     ${lvlUp?`<div class="lvlup">${ART.img('lvl'+lvlUp,'lvlbig')}<br>🔓 Unlocked: <b>${LVLS[lvlUp][0]}</b><div class="small">${LVLS[lvlUp][1]}</div></div>`:''}
      ${newUnlocks.map(([k,x])=>`<div class="row" style="justify-content:center">${med(x.e,false,k)} <span>New charm: <b>${x.n}</b></span></div>`).join('')}
      <button class="btn gold" id="bAgain">${ART.icon('folder')} Another investigation</button>
      <button class="btn paperbtn" id="bMenu">Menu</button></div>`);
@@ -3422,7 +3438,7 @@ function showDailyResult(r,fresh){
       <div class="kv"><span>Daily streak</span><b>🔥 ${S.meta.daily.streak} (best ${S.meta.daily.best})</b></div>
     </div>
     <pre style="background:rgba(160,120,60,.15);border:1px dashed #b9a57c;border-radius:4px;padding:8px;font-size:13px;white-space:pre-wrap;text-align:left;margin:0;font-family:'Special Elite',monospace">${shareText(r)}</pre>
-    <div class="row"><button class="btn gold grow" id="mShare">📤 Share</button><button class="btn paperbtn grow" id="mCopy">📋 Copy</button></div>
+    <div class="row"><button class="btn gold grow" id="mShare">${ART.img('ic_share','bic')} Share</button><button class="btn paperbtn grow" id="mCopy">📋 Copy</button></div>
     <div class="small" style="color:#6d5d43">Come back tomorrow for a new case.</div>
     <button class="btn paperbtn" id="mM">Menu</button></div>`,o=>{
       if(fresh)setTimeout(sfx.stamp,120);
