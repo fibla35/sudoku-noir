@@ -523,6 +523,38 @@ body.saver .albnew{animation:none}
 .tabtro{width:16px;height:16px;display:inline-block;vertical-align:middle}
 body.saver .lvlbig{animation:none}
 
+.rwbtn{position:relative;gap:6px}
+.rwbtn .rwtag{margin-left:auto;font-size:12px;color:var(--gold)}
+.rwbtn.hot{border-color:rgba(232,193,90,.8);box-shadow:0 0 12px rgba(232,193,90,.35)}
+.rwbtn.hot .rwtag{color:#ffe08a;font-weight:700;animation:pulseTag 1.6s ease-in-out infinite}
+@keyframes pulseTag{50%{opacity:.55}}
+.bic.emo,.emo{font-size:22px;line-height:1}
+.pendnote{font-size:12px;color:#e8d3a2;background:rgba(201,162,74,.12);border:1px dashed rgba(201,162,74,.45);border-radius:10px;padding:6px 10px;text-align:center}
+.wheelbox{position:relative;width:min(74vw,290px);aspect-ratio:1;margin:22px auto 74px}
+.wstand{position:absolute;left:12%;width:76%;top:58%;z-index:0}
+.wheel .wimg{transform:rotate(22.5deg)}
+.wheel{position:absolute;inset:0;z-index:1;border-radius:50%;filter:drop-shadow(0 6px 10px rgba(0,0,0,.45))}
+.wheel .wsvg,.wheel .wimg{width:100%;height:100%;display:block}
+.wseg{position:absolute;inset:0;pointer-events:none}
+.wlab{position:absolute;left:50%;top:13%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:1px;width:24%}
+.wlab img,.wlab .ic{width:38px;height:38px;filter:drop-shadow(0 1px 2px #000)}
+.wlab b{font:800 15px 'Playfair Display',serif;color:#ffe7a0;text-shadow:0 1px 2px #000;line-height:1}
+.wpoint{position:absolute;top:-16px;left:50%;transform:translateX(-50%);z-index:3;font-size:30px;color:#d4a53a;text-shadow:0 2px 3px #000;line-height:1}
+.wpoint{top:-26px}.wpoint img{width:44px;height:auto;filter:drop-shadow(0 3px 3px rgba(0,0,0,.5))}
+.wres{min-height:22px;font-size:15px;color:#2a2018}
+.wres b{color:#8b1a1a}
+.chbox{width:180px;height:160px;display:flex;align-items:center;justify-content:center;margin:6px auto}
+.chimg{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 6px 8px rgba(0,0,0,.4))}
+.chemo{font-size:96px;line-height:1;filter:drop-shadow(0 6px 8px rgba(0,0,0,.4))}
+.chemo.silver{filter:grayscale(.6) brightness(1.2) drop-shadow(0 6px 8px rgba(0,0,0,.4))}
+.chbox.shake{animation:chshake .18s linear infinite}
+.chbox.open{animation:chpop .5s cubic-bezier(.3,1.6,.5,1)}
+@keyframes chshake{25%{transform:rotate(-5deg) translateY(-2px)}75%{transform:rotate(5deg) translateY(-2px)}}
+@keyframes chpop{0%{transform:scale(.8)}100%{transform:scale(1)}}
+.albcard.wanted .albph .por{filter:sepia(.8) brightness(.8) contrast(.9)}
+.albw{position:absolute;left:0;right:0;bottom:6px;text-align:center;font:900 11px 'Special Elite',monospace;letter-spacing:2px;color:#f4e3b5;background:rgba(110,23,23,.85);padding:2px 0}
+body.saver .rwbtn.hot .rwtag{animation:none}
+
 </style>
 </head>
 <body>
@@ -1169,6 +1201,7 @@ const sfx={
  unit:()=>play(t=>{piano(784,t,.4,.07);piano(1046,t+.08,.5,.06);}),
  win:()=>play(t=>{[293.66,349.23,440,523.25,659.25].forEach((f,k)=>piano(f,t+k*.09,1.4,.07));osc('sine',73.4,t,1.6,.12);noise(t+.45,.5,.05,'highpass',7000,.5);}),
  lose:()=>play(t=>{[311.13,293.66,261.63,233.08].forEach((f,k)=>piano(f,t+k*.22,.9,.07));osc('sine',58.27,t+.66,1.4,.12);}),
+ tick:()=>play(t=>{osc('triangle',1900,t,.025,.05);}),
  coin:()=>play(t=>{osc('sine',1568,t,.14,.07);osc('sine',2093,t+.06,.22,.06);}),
  folder:()=>play(t=>{noise(t,.18,.25,'bandpass',1200,1);noise(t+.12,.1,.18,'bandpass',2600,1.5);}),
  stamp:()=>play(t=>{osc('sine',90,t,.22,.5,null,45);noise(t,.12,.4,'lowpass',500,.7);noise(t+.01,.05,.2,'bandpass',1800,1.5);})
@@ -1292,6 +1325,8 @@ function renderMenu(){setBg('menu');
     ${(m.lvlMax||0)>0?`<button class="lvlbtn" id="bLvl"><span class="se">${ART.img('lvl'+Math.min(m.lvl||0,m.lvlMax),'lvlimg')}</span><span class="grow"><b>Dificultad: ${LVLS[Math.min(m.lvl||0,m.lvlMax)][0]}</b><small>${Math.min(m.lvl||0,m.lvlMax)?LVLS[Math.min(m.lvl||0,m.lvlMax)][1]+' Y todo lo anterior.':'Has desbloqueado el modo Imposible · toca para cambiar'}</small></span><span class="lvlmax">${m.lvlMax}/10</span></button>`:''}
     <button class="btn ${S.run?'':'gold'}" id="bNew">${ART.icon('folder')} Nueva investigación</button>
     <button class="btn" id="bDaily">${ART.icon('cal')} Caso del día ${playedToday?'✅':''}<span class="small" style="color:var(--gold);margin-left:auto">🔥 ${streak}</span></button>
+    <div class="row"><button class="btn ghost grow rwbtn ${spinReady()?'hot':''}" id="bSpin">${rwIcon('wheel')} Ruleta<span class="rwtag">${spinReady()?'¡Gira!':'✅'}</span></button><button class="btn ghost grow rwbtn ${(m.chests||0)>0?'hot':''}" id="bChest">${rwIcon('chest')} Cofre<span class="rwtag">${(m.chests||0)>0?'¡Ábrelo!'+((m.chests||0)>1?' ×'+m.chests:''):`${m.cpts||0}/${CHEST_PTS} ★`}</span></button></div>
+    ${pendText()?`<div class="pendnote">🎁 Para tu próxima investigación: ${pendText()}</div>`:''}
     <button class="btn ghost albbtn" id="bAlbum">${ART.img('ic_album','bic')} Álbum de culpables<span class="small" style="color:var(--gold);margin-left:auto">${albCount()}/${ALB_ALL.length}</span></button>
     <div class="row"><button class="btn ghost grow" id="bRelics">${ART.icon('bag')} Amuletos</button><button class="btn ghost grow" id="bHelp">${ART.icon('help')} Cómo jugar</button><button class="btn ghost" id="bCfg" aria-label="Ajustes">${ART.icon('cfg')}</button></div>
     <button class="btn ghost" id="bLives">${m.livesOn?'❤️ Modo con vidas: activado':'🕊️ Modo relajado: sin vidas'}<span class="small muted" style="margin-left:auto">cambiar</span></button>
@@ -1305,6 +1340,7 @@ function renderMenu(){setBg('menu');
   if($('#bLvl'))$('#bLvl').onclick=()=>{const mx=S.meta.lvlMax||0;S.meta.lvl=((Math.min(S.meta.lvl||0,mx))+1)%(mx+1);save();sfx.note();renderMenu();if(S.run)toast('Se aplica en tu próxima investigación.');};
   $('#bRelics').onclick=showRelics;
   $('#bAlbum').onclick=()=>showAlbum();
+  $('#bSpin').onclick=showWheel;$('#bChest').onclick=showChest;
   $('#bHelp').onclick=()=>tutorial(0);
   $('#bCfg').onclick=showSettings;
   $('#bLives').onclick=()=>{S.meta.livesOn=!S.meta.livesOn;save();renderMenu();toast(S.meta.livesOn?'❤️ Con vidas: cada acusación fallida cuesta una vida. Se aplica en tu próxima investigación.':'🕊️ Sin vidas: juega a tu ritmo. Se aplica en tu próxima investigación.',3200);};
@@ -1372,7 +1408,7 @@ function tutorial(k){
 function newRun(){
   const L=Math.min(S.meta.lvl||0,S.meta.lvlMax||0);
   S.run={lvl:L,seed:(Math.random()*2**31)|0,theme:S.meta.theme||'mansion',floor:1,livesOn:!!S.meta.livesOn,lives:3,maxLives:3,gold:0,hints:L>=8?0:L>=2?1:START_HINTS,relics:[],phase:'map',cs:null,stats:{cases:0,early:0,perfect:0,gold:0,stars:0},shopBought:[],hist:{}};
-  S.meta.runs++;save();renderMap();
+  S.meta.runs++;const pg=applyPend();save();renderMap();if(pg)setTimeout(()=>toast('🎁 '+pg,3200),400);
 }
 function resumeRun(){
   const r=S.run;
@@ -1763,6 +1799,7 @@ function showAlbum(tab){
   const pi=Math.max(0,ALB_PAGES.findIndex(p=>p[0]===(tab||'mansion')));const P=ALB_PAGES[pi];
   const n=albCount(),tot=ALB_ALL.length;
   const card=id=>{const c=caught(id),s=SUS[id];return c?`<button class="albcard got" data-id="${id}"><div class="albph">${ART.portrait(id)}${c.n>1?`<span class="albn">×${c.n}</span>`:''}</div><div class="albpl"><b>${id===7?'EL PROFESOR':s.n.toUpperCase()}</b><small>${cap(s.r)}</small></div></button>`
+    :(S.meta.wanted||{})[id]?`<div class="albcard wanted"><div class="albph">${ART.portrait(id)}<span class="albw">SE BUSCA</span></div><div class="albpl"><b>${s.n.toUpperCase()}</b><small>Sin atrapar</small></div></div>`
     :`<div class="albcard"><div class="albph off">${ART.portrait(id)}<span class="albq">?</span></div><div class="albpl"><b>???</b><small>Sin fichar</small></div></div>`;};
   modal(`<div class="paper tape col"><div class="serif center albhd" style="font-size:22px">${ART.img('ic_album','albhdimg')}<span>Álbum de culpables</span></div>
     <div class="small center" style="color:#6d5d43">Cada asesino que atrapas queda fichado aquí. Completa una página: <b>+${ALB_BONUS} ⭐ reputación</b>.</div>
@@ -1776,6 +1813,81 @@ function showAlbum(tab){
       toast(`${id===7?'El Profesor':`${s.n}, ${s.r}`} · atrapado ${c.n} ${c.n===1?'vez':'veces'}${c.t?` · primera vez: «${c.t}»`:''}`,3200);});
   });
 }
+/* ---------- Recompensas: ruleta diaria y cofre de estrellas ---------- */
+const CHEST_PTS=9;
+const rwIcon=k=>{const f={wheel:'chip',chest:'chest_wood'}[k];return RWIMG[f]?ART.img(RWIMG[f],'bic'):`<span class="bic emo">${k==='wheel'?'🎡':'🧰'}</span>`;};
+const RWIMG={wheel:'wheel',pointer:'wheel_pointer',stand:'wheel_stand',chip:'ic_chip',chest_wood:'chest_wood',chest_wood_open:'chest_wood_open',chest_silver:'chest_silver',chest_silver_open:'chest_silver_open',chest_gold:'chest_gold',chest_gold_open:'chest_gold_open'};
+const spinReady=()=>S.meta.spin!==today();
+function addChestPts(n){const m=S.meta;m.cpts=(m.cpts||0)+(n||0);while(m.cpts>=CHEST_PTS){m.cpts-=CHEST_PTS;m.chests=(m.chests||0)+1;}}
+const rwRelics=()=>Object.keys(RELICS).filter(k=>unlocked(k)&&!(S.run&&S.run.relics.includes(k))&&!((S.run?!S.run.livesOn:!S.meta.livesOn)&&LIFE_RELICS.includes(k)));
+/* da un premio: en mitad de una investigación se aplica ya; si no, queda para la próxima */
+function grant(g){const m=S.meta,r=S.run&&S.run.phase!=='over'?S.run:null,out=[];
+  if(g.rep){m.rep+=g.rep;out.push(`+${g.rep} ⭐`);}
+  if(g.cpts){addChestPts(g.cpts);out.push(`+${g.cpts} ★ para el cofre`);}
+  m.pend=m.pend||{};
+  if(g.gold){if(r)r.gold+=g.gold;else m.pend.gold=(m.pend.gold||0)+g.gold;out.push(`+${g.gold} de oro`);}
+  if(g.hints){if(r)r.hints+=g.hints;else m.pend.hints=(m.pend.hints||0)+g.hints;out.push(`+${g.hints} ${g.hints>1?'pistas':'pista'}`);}
+  if(g.relic){const pool=rwRelics();if(pool.length){const k=pool[Math.floor(Math.random()*pool.length)];
+      if(r){r.relics.push(k);if(k==='cafe'){r.maxLives++;r.lives=Math.min(r.maxLives,r.lives+1);}}else m.pend.relic=k;out.push(`${RELICS[k].e} ${RELICS[k].n}`);}
+    else{m.rep+=10;out.push('+10 ⭐');}}
+  if(g.wanted){const ids=ALB_ALL.filter(id=>id!==7&&!caught(id)&&!(m.wanted||{})[id]);if(ids.length){const id=ids[Math.floor(Math.random()*ids.length)];m.wanted=m.wanted||{};m.wanted[id]=1;out.push(`🔎 Se busca: ${SUS[id].n} (en tu álbum)`);}}
+  save();return out;}
+function pendText(){const p=S.meta.pend||{},o=[];if(p.gold)o.push(`+${p.gold} de oro`);if(p.hints)o.push(`+${p.hints} ${p.hints>1?'pistas':'pista'}`);if(p.relic&&RELICS[p.relic])o.push(`${RELICS[p.relic].e} ${RELICS[p.relic].n}`);return o.join(' · ');}
+function applyPend(){const p=S.meta.pend,r=S.run;if(!p||!r)return'';const t=pendText();
+  if(p.gold){r.gold+=p.gold;}if(p.hints)r.hints+=p.hints;
+  if(p.relic&&RELICS[p.relic]&&!r.relics.includes(p.relic)&&(r.livesOn||!LIFE_RELICS.includes(p.relic))){r.relics.push(p.relic);if(p.relic==='cafe'){r.maxLives++;r.lives++;}}
+  S.meta.pend={};return t;}
+const WHEEL=[{g:{gold:15},e:'coin',t:'15'},{g:{hints:1},e:'bulb',t:'1'},{g:{rep:10},e:'star',t:'10'},{g:{gold:30},e:'coin',t:'30'},{g:{cpts:3},e:'chest',t:'3★'},{g:{rep:20},e:'star',t:'20'},{g:{relic:1},e:'bag',t:''},{g:{hints:2},e:'bulb',t:'2'}];
+const WHEEL_W=[20,18,18,10,12,8,7,7];
+function wheelSVG(){const C=150,Rr=140;let p='';
+  for(let i=0;i<8;i++){const a0=(i*45-22.5-90)*Math.PI/180,a1=(i*45+22.5-90)*Math.PI/180;
+    p+=`<path d="M${C} ${C}L${C+Rr*Math.cos(a0)} ${C+Rr*Math.sin(a0)}A${Rr} ${Rr} 0 0 1 ${C+Rr*Math.cos(a1)} ${C+Rr*Math.sin(a1)}Z" fill="${i%2?'#16110e':'#6e1717'}" stroke="#d4a53a" stroke-width="3"/>`;}
+  return`<svg viewBox="0 0 300 300" class="wsvg"><circle cx="150" cy="150" r="147" fill="#2a1a0a" stroke="#d4a53a" stroke-width="6"/>${p}${[...Array(24)].map((_,k)=>{const a=k*15*Math.PI/180;return`<circle cx="${150+144*Math.cos(a)}" cy="${150+144*Math.sin(a)}" r="3.2" fill="#ffe7a0"/>`;}).join('')}<circle cx="150" cy="150" r="26" fill="#c9962e" stroke="#7a5214" stroke-width="4"/><circle cx="150" cy="150" r="12" fill="#6e1717"/></svg>`;}
+const wIcon=e=>e==='coin'?ART.img('ui_coin'):e==='star'?ART.img('ic_star_on'):e==='chest'?(RWIMG.chest_wood?ART.img(RWIMG.chest_wood):'<span class="emo">🧰</span>'):ART.icon(e);
+function showWheel(){
+  const ready=spinReady();
+  modal(`<div class="paper tape col center"><div class="serif" style="font-size:22px">🎡 Ruleta diaria</div>
+    <div class="small" style="color:#6d5d43">${ready?'Una tirada gratis cada día. El oro, las pistas y los amuletos son para tu investigación.':'Ya has girado hoy. Vuelve mañana para otra tirada.'}</div>
+    <div class="wheelbox">${RWIMG.stand?ART.img(RWIMG.stand,'wstand'):''}<div class="wpoint">${RWIMG.pointer?ART.img(RWIMG.pointer):'▼'}</div><div class="wheel" id="wheel">${RWIMG.wheel?ART.img(RWIMG.wheel,'wimg'):wheelSVG()}${WHEEL.map((w,i)=>`<div class="wseg" style="transform:rotate(${i*45}deg)"><div class="wlab">${wIcon(w.e)}<b>${w.t}</b></div></div>`).join('')}</div></div>
+    <div id="wRes" class="wres"></div>
+    <div class="row" style="width:100%">${ready?`<button class="btn gold grow" id="wGo">¡Girar!</button>`:''}<button class="btn paperbtn grow" id="wX">${ready?'Más tarde':'Cerrar'}</button></div></div>`,o=>{
+    o.querySelector('#wX').onclick=()=>{closeModal();renderMenu();};
+    const go=o.querySelector('#wGo');if(!go)return;
+    go.onclick=()=>{if(!spinReady())return;S.meta.spin=today();save();go.disabled=true;o.querySelector('#wX').disabled=true;
+      let x=Math.random()*WHEEL_W.reduce((a,b)=>a+b),i=0;while(x>=WHEEL_W[i]){x-=WHEEL_W[i];i++;}
+      const fast=document.body.classList.contains('saver'),dur=fast?1.8:4.6;
+      const rot=360*(fast?3:6)+(360-i*45)+(Math.random()*30-15);const wl=o.querySelector('#wheel');
+      wl.style.transition=`transform ${dur}s cubic-bezier(.12,.7,.18,1)`;requestAnimationFrame(()=>wl.style.transform=`rotate(${rot}deg)`);
+      sfx.folder();let last=0;const t0=performance.now();
+      const tk=()=>{const el=(performance.now()-t0)/1000;if(el>dur)return;const m=getComputedStyle(wl).transform;let a=0;if(m&&m!=='none'){const v=m.split('(')[1].split(',');a=Math.atan2(+v[1],+v[0])*180/Math.PI;}const seg=Math.floor(((a+382.5)%360)/45);if(seg!==last){last=seg;sfx.tick();}requestAnimationFrame(tk);};requestAnimationFrame(tk);
+      setTimeout(()=>{const out=grant(WHEEL[i].g);sfx.win();buzz([20,30,20]);
+        o.querySelector('#wRes').innerHTML=`<b>¡Premio!</b> ${out.join(' · ')}${S.run||!(WHEEL[i].g.gold||WHEEL[i].g.hints||WHEEL[i].g.relic)?'':'<div class="small">Se aplica al empezar tu próxima investigación.</div>'}`;
+        o.querySelector('#wX').disabled=false;o.querySelector('#wX').textContent='¡Genial!';
+        const br=wl.getBoundingClientRect();sparks(br.left+br.width/2,br.top+br.height/2,24);},dur*1000+150);};
+  });
+}
+const CHESTS={wood:{n:'Cofre de madera',e:'🧰',g:()=>({gold:20,rep:5,hints:Math.random()<.3?1:0})},silver:{n:'Cofre de plata',e:'🗃️',g:()=>({gold:35,rep:10,hints:1,wanted:Math.random()<.5})},gold:{n:'Cofre de oro',e:'👑',g:()=>({gold:60,rep:20,hints:2,relic:1,wanted:1})}};
+const chestImg=(t,open)=>RWIMG['chest_'+t]?ART.img(RWIMG['chest_'+t+(open?'_open':'')],'chimg'):`<span class="chemo ${t}">${open?'✨':''}${CHESTS[t].e}</span>`;
+function showChest(){
+  const m=S.meta,n=m.chests||0;
+  if(!n){modal(`<div class="paper tape col center"><div class="serif" style="font-size:22px">🧰 Cofre de estrellas</div><div class="chbox">${chestImg('wood',false)}</div>
+      <div>Cada estrella que ganas llena el cofre. Con <b>${CHEST_PTS} ★</b> se abre: oro, pistas, reputación y, con suerte, amuletos y fichas de «Se busca» para tu álbum.</div>
+      <div class="bar albbar" style="width:100%"><i style="width:${Math.round((m.cpts||0)/CHEST_PTS*100)}%"></i></div><div class="small"><b>${m.cpts||0}/${CHEST_PTS} ★</b></div>
+      <button class="btn gold" id="cX">Entendido</button></div>`,o=>o.querySelector('#cX').onclick=closeModal);return;}
+  const roll=Math.random(),t=roll<.07?'gold':roll<.35?'silver':'wood';
+  modal(`<div class="paper tape col center"><div class="serif" style="font-size:22px">${CHESTS[t].n}</div><div class="small" style="color:#6d5d43">${n>1?`Tienes ${n} cofres por abrir.`:'¡Tus estrellas han llenado el cofre!'}</div>
+    <div class="chbox" id="chB">${chestImg(t,false)}</div><div id="chRes" class="wres"></div>
+    <button class="btn gold" id="cGo">Abrir</button></div>`,o=>{
+    const b=o.querySelector('#cGo');let opened=false;
+    b.onclick=()=>{if(opened){closeModal();if((S.meta.chests||0)>0)showChest();else renderMenu();return;}opened=true;b.disabled=true;
+      const box=o.querySelector('#chB');box.classList.add('shake');sfx.folder();
+      setTimeout(()=>{S.meta.chests=Math.max(0,(S.meta.chests||0)-1);const out=grant(CHESTS[t].g());box.classList.remove('shake');box.innerHTML=chestImg(t,true);box.classList.add('open');sfx.coin();setTimeout(()=>sfx.win(),200);buzz([30,30,60]);
+        o.querySelector('#chRes').innerHTML=out.map(x=>`<div>${x}</div>`).join('')+(S.run?'':'<div class="small">El oro, las pistas y los amuletos se aplican al empezar tu próxima investigación.</div>');
+        const br=box.getBoundingClientRect();sparks(br.left+br.width/2,br.top+br.height/2,30);
+        b.disabled=false;b.textContent=(S.meta.chests||0)>0?'Abrir el siguiente':'¡Genial!';},fast()?400:1100);};
+  });
+}
+const fast=()=>document.body.classList.contains('saver');
 function verdictHTML(cs){
   const C=cs.C,id=C.cast[C.murderer-1],pl=C.roomIds[C.victimRoom],s=SUS[id],P2=plc(C.theme,pl);
   return`<div class="lineupbg"><div class="mugshot"><div class="frame">${ART.portrait(id)}<div class="plate">${s.n.toUpperCase()} · CULPABLE</div>${ART.img('st_culpable','culpst')}</div><div class="polaroid"><div class="ph">${ART.placePhoto(pl,C.theme)}</div><div class="cap">${P2.n}</div></div></div></div>
@@ -1798,7 +1910,7 @@ function solveCase(left){
   cs.racha=rach;
   let total=base+early+perfect+rach;const mult=has('contable');if(mult)total=Math.round(total*1.4);
   r.gold+=total;r.stats.gold+=total;r.stats.cases++;if(left>0)r.stats.early++;if(perfect)r.stats.perfect++;
-  const stars=caseStars(cs);r.stats.stars=(r.stats.stars||0)+stars;S.meta.stars=(S.meta.stars||0)+stars;
+  const stars=caseStars(cs);r.stats.stars=(r.stats.stars||0)+stars;S.meta.stars=(S.meta.stars||0)+stars;addChestPts(stars);
   r.hist=r.hist||{};r.hist[fl]={s:C.cast[C.murderer-1],p:C.roomIds[C.victimRoom],st:stars};
   S.meta.cases++;
   let healed=false;if(r.livesOn&&has('botiquin')&&cs.wrongAcc===0&&r.lives<r.maxLives){r.lives++;healed=true;}
@@ -1927,7 +2039,7 @@ function startDaily(){
 function finishDaily(empty){
   const cs=S.daily.cs,t=today(),dd=S.meta.daily;
   const res={n:dailyNumber(),time:cs.elapsed,errors:cs.errors,wrong:cs.wrongAcc,empty,hints:cs.hintsUsed,stars:caseStars(cs)};
-  dd.results[t]=res;
+  dd.results[t]=res;addChestPts(res.stars);
   const ks=Object.keys(dd.results).sort();if(ks.length>40)delete dd.results[ks[0]];
   dd.streak=dd.last===yesterday()?dd.streak+1:(dd.last===t?dd.streak:1);dd.last=t;dd.best=Math.max(dd.best,dd.streak);
   S.daily.active=false;save();
@@ -2649,6 +2761,7 @@ const sfx={
  unit:()=>play(t=>{piano(784,t,.4,.07);piano(1046,t+.08,.5,.06);}),
  win:()=>play(t=>{[293.66,349.23,440,523.25,659.25].forEach((f,k)=>piano(f,t+k*.09,1.4,.07));osc('sine',73.4,t,1.6,.12);noise(t+.45,.5,.05,'highpass',7000,.5);}),
  lose:()=>play(t=>{[311.13,293.66,261.63,233.08].forEach((f,k)=>piano(f,t+k*.22,.9,.07));osc('sine',58.27,t+.66,1.4,.12);}),
+ tick:()=>play(t=>{osc('triangle',1900,t,.025,.05);}),
  coin:()=>play(t=>{osc('sine',1568,t,.14,.07);osc('sine',2093,t+.06,.22,.06);}),
  folder:()=>play(t=>{noise(t,.18,.25,'bandpass',1200,1);noise(t+.12,.1,.18,'bandpass',2600,1.5);}),
  stamp:()=>play(t=>{osc('sine',90,t,.22,.5,null,45);noise(t,.12,.4,'lowpass',500,.7);noise(t+.01,.05,.2,'bandpass',1800,1.5);})
@@ -2671,8 +2784,8 @@ function scheduleMusic(){
 function ramp(g,v,t){g.gain.cancelScheduledValues(AC.currentTime);g.gain.setValueAtTime(g.gain.value,AC.currentTime);g.gain.linearRampToValueAtTime(v,AC.currentTime+t);}
 /* música: varias pistas grabadas según la pantalla (menú, caso, caso final) */
 let wantTrack='menu',curTrack=null;
-const DEF_T='pista';
-const MUSICS=[['pista','On the Trail','soft, in the background'],['case','Footsteps in the Shadows','classic mystery'],['mist2','Fog','more mystery'],['anim','Pursuit','more upbeat'],['menu','Mansion 1926','elegant mystery']];
+const DEF_T='hint';
+const MUSICS=[['hint','On the Trail','soft, in the background'],['case','Footsteps in the Shadows','classic mystery'],['mist2','Fog','more mystery'],['anim','Pursuit','more upbeat'],['menu','Mansion 1926','elegant mystery']];
 const hasT=t=>!!(RAW['music_'+t]||SB['music_'+t]);
 const pickTrack=()=>{const m=S.meta.track||DEF_T;return wantTrack==='case'&&m!=='case'&&hasT(m)?m:wantTrack;};
 const resolveT=t=>hasT(t)?t:(t==='boss'&&hasT('case'))?'case':hasT('menu')?'menu':hasT('case')?'case':null;
@@ -2772,6 +2885,8 @@ function renderMenu(){setBg('menu');
     ${(m.lvlMax||0)>0?`<button class="lvlbtn" id="bLvl"><span class="se">${ART.img('lvl'+Math.min(m.lvl||0,m.lvlMax),'lvlimg')}</span><span class="grow"><b>Difficulty: ${LVLS[Math.min(m.lvl||0,m.lvlMax)][0]}</b><small>${Math.min(m.lvl||0,m.lvlMax)?LVLS[Math.min(m.lvl||0,m.lvlMax)][1]+' Plus everything before.':'You’ve unlocked Impossible mode · tap to change'}</small></span><span class="lvlmax">${m.lvlMax}/10</span></button>`:''}
     <button class="btn ${S.run?'':'gold'}" id="bNew">${ART.icon('folder')} New investigation</button>
     <button class="btn" id="bDaily">${ART.icon('cal')} Case of the Day ${playedToday?'✅':''}<span class="small" style="color:var(--gold);margin-left:auto">🔥 ${streak}</span></button>
+    <div class="row"><button class="btn ghost grow rwbtn ${spinReady()?'hot':''}" id="bSpin">${rwIcon('wheel')} Wheel<span class="rwtag">${spinReady()?'Spin!':'✅'}</span></button><button class="btn ghost grow rwbtn ${(m.chests||0)>0?'hot':''}" id="bChest">${rwIcon('chest')} Chest<span class="rwtag">${(m.chests||0)>0?'Open it!'+((m.chests||0)>1?' ×'+m.chests:''):`${m.cpts||0}/${CHEST_PTS} ★`}</span></button></div>
+    ${pendText()?`<div class="pendnote">🎁 For your next investigation: ${pendText()}</div>`:''}
     <button class="btn ghost albbtn" id="bAlbum">${ART.img('ic_album','bic')} Rogues’ Gallery<span class="small" style="color:var(--gold);margin-left:auto">${albCount()}/${ALB_ALL.length}</span></button>
     <div class="row"><button class="btn ghost grow" id="bRelics">${ART.icon('bag')} Charms</button><button class="btn ghost grow" id="bHelp">${ART.icon('help')} How to play</button><button class="btn ghost" id="bCfg" aria-label="Settings">${ART.icon('cfg')}</button></div>
     <button class="btn ghost" id="bLives">${m.livesOn?'❤️ Lives mode: on':'🕊️ Relaxed mode: no lives'}<span class="small muted" style="margin-left:auto">change</span></button>
@@ -2785,6 +2900,7 @@ function renderMenu(){setBg('menu');
   if($('#bLvl'))$('#bLvl').onclick=()=>{const mx=S.meta.lvlMax||0;S.meta.lvl=((Math.min(S.meta.lvl||0,mx))+1)%(mx+1);save();sfx.note();renderMenu();if(S.run)toast('Applies to your next investigation.');};
   $('#bRelics').onclick=showRelics;
   $('#bAlbum').onclick=()=>showAlbum();
+  $('#bSpin').onclick=showWheel;$('#bChest').onclick=showChest;
   $('#bHelp').onclick=()=>tutorial(0);
   $('#bCfg').onclick=showSettings;
   $('#bLives').onclick=()=>{S.meta.livesOn=!S.meta.livesOn;save();renderMenu();toast(S.meta.livesOn?'❤️ Lives on: each wrong accusation costs a life. Applies to your next investigation.':'🕊️ No lives: play at your own pace. Applies to your next investigation.',3200);};
@@ -2852,7 +2968,7 @@ function tutorial(k){
 function newRun(){
   const L=Math.min(S.meta.lvl||0,S.meta.lvlMax||0);
   S.run={lvl:L,seed:(Math.random()*2**31)|0,theme:S.meta.theme||'mansion',floor:1,livesOn:!!S.meta.livesOn,lives:3,maxLives:3,gold:0,hints:L>=8?0:L>=2?1:START_HINTS,relics:[],phase:'map',cs:null,stats:{cases:0,early:0,perfect:0,gold:0,stars:0},shopBought:[],hist:{}};
-  S.meta.runs++;save();renderMap();
+  S.meta.runs++;const pg=applyPend();save();renderMap();if(pg)setTimeout(()=>toast('🎁 '+pg,3200),400);
 }
 function resumeRun(){
   const r=S.run;
@@ -3243,6 +3359,7 @@ function showAlbum(tab){
   const pi=Math.max(0,ALB_PAGES.findIndex(p=>p[0]===(tab||'mansion')));const P=ALB_PAGES[pi];
   const n=albCount(),tot=ALB_ALL.length;
   const card=id=>{const c=caught(id),s=SUS[id];return c?`<button class="albcard got" data-id="${id}"><div class="albph">${ART.portrait(id)}${c.n>1?`<span class="albn">×${c.n}</span>`:''}</div><div class="albpl"><b>${id===7?'THE PROFESSOR':s.n.toUpperCase()}</b><small>${cap(s.r)}</small></div></button>`
+    :(S.meta.wanted||{})[id]?`<div class="albcard wanted"><div class="albph">${ART.portrait(id)}<span class="albw">WANTED</span></div><div class="albpl"><b>${s.n.toUpperCase()}</b><small>Not caught</small></div></div>`
     :`<div class="albcard"><div class="albph off">${ART.portrait(id)}<span class="albq">?</span></div><div class="albpl"><b>???</b><small>Not filed</small></div></div>`;};
   modal(`<div class="paper tape col"><div class="serif center albhd" style="font-size:22px">${ART.img('ic_album','albhdimg')}<span>Rogues’ Gallery</span></div>
     <div class="small center" style="color:#6d5d43">Every killer you catch is filed here. Complete a page: <b>+${ALB_BONUS} ⭐ reputation</b>.</div>
@@ -3256,6 +3373,81 @@ function showAlbum(tab){
       toast(`${id===7?'The Professor':`${s.n}, ${s.r}`} · caught ${c.n} ${c.n===1?'time':'times'}${c.t?` · first time: «${c.t}»`:''}`,3200);});
   });
 }
+/* ---------- Recompensas: ruleta diaria y cofre de estrellas ---------- */
+const CHEST_PTS=9;
+const rwIcon=k=>{const f={wheel:'chip',chest:'chest_wood'}[k];return RWIMG[f]?ART.img(RWIMG[f],'bic'):`<span class="bic emo">${k==='wheel'?'🎡':'🧰'}</span>`;};
+const RWIMG={wheel:'wheel',pointer:'wheel_pointer',stand:'wheel_stand',chip:'ic_chip',chest_wood:'chest_wood',chest_wood_open:'chest_wood_open',chest_silver:'chest_silver',chest_silver_open:'chest_silver_open',chest_gold:'chest_gold',chest_gold_open:'chest_gold_open'};
+const spinReady=()=>S.meta.spin!==today();
+function addChestPts(n){const m=S.meta;m.cpts=(m.cpts||0)+(n||0);while(m.cpts>=CHEST_PTS){m.cpts-=CHEST_PTS;m.chests=(m.chests||0)+1;}}
+const rwRelics=()=>Object.keys(RELICS).filter(k=>unlocked(k)&&!(S.run&&S.run.relics.includes(k))&&!((S.run?!S.run.livesOn:!S.meta.livesOn)&&LIFE_RELICS.includes(k)));
+/* da un premio: en mitad de una investigación se aplica ya; si no, queda para la próxima */
+function grant(g){const m=S.meta,r=S.run&&S.run.phase!=='over'?S.run:null,out=[];
+  if(g.rep){m.rep+=g.rep;out.push(`+${g.rep} ⭐`);}
+  if(g.cpts){addChestPts(g.cpts);out.push(`+${g.cpts} ★ for the chest`);}
+  m.pend=m.pend||{};
+  if(g.gold){if(r)r.gold+=g.gold;else m.pend.gold=(m.pend.gold||0)+g.gold;out.push(`+${g.gold} gold`);}
+  if(g.hints){if(r)r.hints+=g.hints;else m.pend.hints=(m.pend.hints||0)+g.hints;out.push(`+${g.hints} ${g.hints>1?'hints':'hint'}`);}
+  if(g.relic){const pool=rwRelics();if(pool.length){const k=pool[Math.floor(Math.random()*pool.length)];
+      if(r){r.relics.push(k);if(k==='cafe'){r.maxLives++;r.lives=Math.min(r.maxLives,r.lives+1);}}else m.pend.relic=k;out.push(`${RELICS[k].e} ${RELICS[k].n}`);}
+    else{m.rep+=10;out.push('+10 ⭐');}}
+  if(g.wanted){const ids=ALB_ALL.filter(id=>id!==7&&!caught(id)&&!(m.wanted||{})[id]);if(ids.length){const id=ids[Math.floor(Math.random()*ids.length)];m.wanted=m.wanted||{};m.wanted[id]=1;out.push(`🔎 Wanted: ${SUS[id].n} (in your gallery)`);}}
+  save();return out;}
+function pendText(){const p=S.meta.pend||{},o=[];if(p.gold)o.push(`+${p.gold} gold`);if(p.hints)o.push(`+${p.hints} ${p.hints>1?'hints':'hint'}`);if(p.relic&&RELICS[p.relic])o.push(`${RELICS[p.relic].e} ${RELICS[p.relic].n}`);return o.join(' · ');}
+function applyPend(){const p=S.meta.pend,r=S.run;if(!p||!r)return'';const t=pendText();
+  if(p.gold){r.gold+=p.gold;}if(p.hints)r.hints+=p.hints;
+  if(p.relic&&RELICS[p.relic]&&!r.relics.includes(p.relic)&&(r.livesOn||!LIFE_RELICS.includes(p.relic))){r.relics.push(p.relic);if(p.relic==='cafe'){r.maxLives++;r.lives++;}}
+  S.meta.pend={};return t;}
+const WHEEL=[{g:{gold:15},e:'coin',t:'15'},{g:{hints:1},e:'bulb',t:'1'},{g:{rep:10},e:'star',t:'10'},{g:{gold:30},e:'coin',t:'30'},{g:{cpts:3},e:'chest',t:'3★'},{g:{rep:20},e:'star',t:'20'},{g:{relic:1},e:'bag',t:''},{g:{hints:2},e:'bulb',t:'2'}];
+const WHEEL_W=[20,18,18,10,12,8,7,7];
+function wheelSVG(){const C=150,Rr=140;let p='';
+  for(let i=0;i<8;i++){const a0=(i*45-22.5-90)*Math.PI/180,a1=(i*45+22.5-90)*Math.PI/180;
+    p+=`<path d="M${C} ${C}L${C+Rr*Math.cos(a0)} ${C+Rr*Math.sin(a0)}A${Rr} ${Rr} 0 0 1 ${C+Rr*Math.cos(a1)} ${C+Rr*Math.sin(a1)}Z" fill="${i%2?'#16110e':'#6e1717'}" stroke="#d4a53a" stroke-width="3"/>`;}
+  return`<svg viewBox="0 0 300 300" class="wsvg"><circle cx="150" cy="150" r="147" fill="#2a1a0a" stroke="#d4a53a" stroke-width="6"/>${p}${[...Array(24)].map((_,k)=>{const a=k*15*Math.PI/180;return`<circle cx="${150+144*Math.cos(a)}" cy="${150+144*Math.sin(a)}" r="3.2" fill="#ffe7a0"/>`;}).join('')}<circle cx="150" cy="150" r="26" fill="#c9962e" stroke="#7a5214" stroke-width="4"/><circle cx="150" cy="150" r="12" fill="#6e1717"/></svg>`;}
+const wIcon=e=>e==='coin'?ART.img('ui_coin'):e==='star'?ART.img('ic_star_on'):e==='chest'?(RWIMG.chest_wood?ART.img(RWIMG.chest_wood):'<span class="emo">🧰</span>'):ART.icon(e);
+function showWheel(){
+  const ready=spinReady();
+  modal(`<div class="paper tape col center"><div class="serif" style="font-size:22px">🎡 Daily Wheel</div>
+    <div class="small" style="color:#6d5d43">${ready?'One free spin every day. Gold, hints and charms go to your investigation.':'You’ve already spun today. Come back tomorrow for another go.'}</div>
+    <div class="wheelbox">${RWIMG.stand?ART.img(RWIMG.stand,'wstand'):''}<div class="wpoint">${RWIMG.pointer?ART.img(RWIMG.pointer):'▼'}</div><div class="wheel" id="wheel">${RWIMG.wheel?ART.img(RWIMG.wheel,'wimg'):wheelSVG()}${WHEEL.map((w,i)=>`<div class="wseg" style="transform:rotate(${i*45}deg)"><div class="wlab">${wIcon(w.e)}<b>${w.t}</b></div></div>`).join('')}</div></div>
+    <div id="wRes" class="wres"></div>
+    <div class="row" style="width:100%">${ready?`<button class="btn gold grow" id="wGo">Spin!</button>`:''}<button class="btn paperbtn grow" id="wX">${ready?'Later':'Close'}</button></div></div>`,o=>{
+    o.querySelector('#wX').onclick=()=>{closeModal();renderMenu();};
+    const go=o.querySelector('#wGo');if(!go)return;
+    go.onclick=()=>{if(!spinReady())return;S.meta.spin=today();save();go.disabled=true;o.querySelector('#wX').disabled=true;
+      let x=Math.random()*WHEEL_W.reduce((a,b)=>a+b),i=0;while(x>=WHEEL_W[i]){x-=WHEEL_W[i];i++;}
+      const fast=document.body.classList.contains('saver'),dur=fast?1.8:4.6;
+      const rot=360*(fast?3:6)+(360-i*45)+(Math.random()*30-15);const wl=o.querySelector('#wheel');
+      wl.style.transition=`transform ${dur}s cubic-bezier(.12,.7,.18,1)`;requestAnimationFrame(()=>wl.style.transform=`rotate(${rot}deg)`);
+      sfx.folder();let last=0;const t0=performance.now();
+      const tk=()=>{const el=(performance.now()-t0)/1000;if(el>dur)return;const m=getComputedStyle(wl).transform;let a=0;if(m&&m!=='none'){const v=m.split('(')[1].split(',');a=Math.atan2(+v[1],+v[0])*180/Math.PI;}const seg=Math.floor(((a+382.5)%360)/45);if(seg!==last){last=seg;sfx.tick();}requestAnimationFrame(tk);};requestAnimationFrame(tk);
+      setTimeout(()=>{const out=grant(WHEEL[i].g);sfx.win();buzz([20,30,20]);
+        o.querySelector('#wRes').innerHTML=`<b>Prize!</b> ${out.join(' · ')}${S.run||!(WHEEL[i].g.gold||WHEEL[i].g.hints||WHEEL[i].g.relic)?'':'<div class="small">Applied when you start your next investigation.</div>'}`;
+        o.querySelector('#wX').disabled=false;o.querySelector('#wX').textContent='Great!';
+        const br=wl.getBoundingClientRect();sparks(br.left+br.width/2,br.top+br.height/2,24);},dur*1000+150);};
+  });
+}
+const CHESTS={wood:{n:'Wooden chest',e:'🧰',g:()=>({gold:20,rep:5,hints:Math.random()<.3?1:0})},silver:{n:'Silver chest',e:'🗃️',g:()=>({gold:35,rep:10,hints:1,wanted:Math.random()<.5})},gold:{n:'Gold chest',e:'👑',g:()=>({gold:60,rep:20,hints:2,relic:1,wanted:1})}};
+const chestImg=(t,open)=>RWIMG['chest_'+t]?ART.img(RWIMG['chest_'+t+(open?'_open':'')],'chimg'):`<span class="chemo ${t}">${open?'✨':''}${CHESTS[t].e}</span>`;
+function showChest(){
+  const m=S.meta,n=m.chests||0;
+  if(!n){modal(`<div class="paper tape col center"><div class="serif" style="font-size:22px">🧰 Star Chest</div><div class="chbox">${chestImg('wood',false)}</div>
+      <div>Every star you earn fills the chest. At <b>${CHEST_PTS} ★</b> it opens: gold, hints, reputation and, with luck, charms and “Wanted” files for your gallery.</div>
+      <div class="bar albbar" style="width:100%"><i style="width:${Math.round((m.cpts||0)/CHEST_PTS*100)}%"></i></div><div class="small"><b>${m.cpts||0}/${CHEST_PTS} ★</b></div>
+      <button class="btn gold" id="cX">Got it</button></div>`,o=>o.querySelector('#cX').onclick=closeModal);return;}
+  const roll=Math.random(),t=roll<.07?'gold':roll<.35?'silver':'wood';
+  modal(`<div class="paper tape col center"><div class="serif" style="font-size:22px">${CHESTS[t].n}</div><div class="small" style="color:#6d5d43">${n>1?`You have ${n} chests to open.`:'Your stars have filled the chest!'}</div>
+    <div class="chbox" id="chB">${chestImg(t,false)}</div><div id="chRes" class="wres"></div>
+    <button class="btn gold" id="cGo">Open</button></div>`,o=>{
+    const b=o.querySelector('#cGo');let opened=false;
+    b.onclick=()=>{if(opened){closeModal();if((S.meta.chests||0)>0)showChest();else renderMenu();return;}opened=true;b.disabled=true;
+      const box=o.querySelector('#chB');box.classList.add('shake');sfx.folder();
+      setTimeout(()=>{S.meta.chests=Math.max(0,(S.meta.chests||0)-1);const out=grant(CHESTS[t].g());box.classList.remove('shake');box.innerHTML=chestImg(t,true);box.classList.add('open');sfx.coin();setTimeout(()=>sfx.win(),200);buzz([30,30,60]);
+        o.querySelector('#chRes').innerHTML=out.map(x=>`<div>${x}</div>`).join('')+(S.run?'':'<div class="small">Gold, hints and charms are applied when you start your next investigation.</div>');
+        const br=box.getBoundingClientRect();sparks(br.left+br.width/2,br.top+br.height/2,30);
+        b.disabled=false;b.textContent=(S.meta.chests||0)>0?'Open the next one':'Great!';},fast()?400:1100);};
+  });
+}
+const fast=()=>document.body.classList.contains('saver');
 function verdictHTML(cs){
   const C=cs.C,id=C.cast[C.murderer-1],pl=C.roomIds[C.victimRoom],s=SUS[id],P2=plc(C.theme,pl);
   return`<div class="lineupbg"><div class="mugshot"><div class="frame">${ART.portrait(id)}<div class="plate">${s.n.toUpperCase()} · GUILTY</div></div><div class="polaroid"><div class="ph">${ART.placePhoto(pl,C.theme)}</div><div class="cap">${P2.n}</div></div></div></div>
@@ -3278,7 +3470,7 @@ function solveCase(left){
   cs.racha=rach;
   let total=base+early+perfect+rach;const mult=has('contable');if(mult)total=Math.round(total*1.4);
   r.gold+=total;r.stats.gold+=total;r.stats.cases++;if(left>0)r.stats.early++;if(perfect)r.stats.perfect++;
-  const stars=caseStars(cs);r.stats.stars=(r.stats.stars||0)+stars;S.meta.stars=(S.meta.stars||0)+stars;
+  const stars=caseStars(cs);r.stats.stars=(r.stats.stars||0)+stars;S.meta.stars=(S.meta.stars||0)+stars;addChestPts(stars);
   r.hist=r.hist||{};r.hist[fl]={s:C.cast[C.murderer-1],p:C.roomIds[C.victimRoom],st:stars};
   S.meta.cases++;
   let healed=false;if(r.livesOn&&has('botiquin')&&cs.wrongAcc===0&&r.lives<r.maxLives){r.lives++;healed=true;}
@@ -3407,7 +3599,7 @@ function startDaily(){
 function finishDaily(empty){
   const cs=S.daily.cs,t=today(),dd=S.meta.daily;
   const res={n:dailyNumber(),time:cs.elapsed,errors:cs.errors,wrong:cs.wrongAcc,empty,hints:cs.hintsUsed,stars:caseStars(cs)};
-  dd.results[t]=res;
+  dd.results[t]=res;addChestPts(res.stars);
   const ks=Object.keys(dd.results).sort();if(ks.length>40)delete dd.results[ks[0]];
   dd.streak=dd.last===yesterday()?dd.streak+1:(dd.last===t?dd.streak:1);dd.last=t;dd.best=Math.max(dd.best,dd.streak);
   S.daily.active=false;save();
