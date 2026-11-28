@@ -455,6 +455,22 @@ body.saver .ov{background:rgba(4,5,10,.9)}
 .setrow.saveslot.cur{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
 #tm{contain:layout paint;font-variant-numeric:tabular-nums}
 
+/* estrellas por caso */
+.cstars{display:flex;justify-content:center;gap:6px;font-size:30px;line-height:1;margin:2px 0}
+.cstars.big{font-size:40px}
+.cstars span{color:rgba(80,60,30,.28);text-shadow:none}
+.cstars span.on{color:#f2c24f;text-shadow:0 0 10px rgba(255,200,80,.7),0 2px 0 #8a5a12;animation:starpop .45s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes starpop{0%{transform:scale(0) rotate(-40deg);opacity:0}100%{transform:scale(1) rotate(0);opacity:1}}
+.starkey{color:#6d5d43;margin-top:-4px}
+.gstar{color:#c8921d}
+.nstars{font-size:18px;letter-spacing:2px;color:#f2b632;text-shadow:0 0 1px #5a3a08,0 1px 0 #5a3a08,0 0 6px rgba(255,190,60,.5);line-height:1;margin:2px 0}
+.nstars i{font-style:normal;color:rgba(80,60,30,.3)}
+.lvlup{background:rgba(201,162,74,.18);border:1px dashed #b08a3a;border-radius:8px;padding:8px 10px;text-align:center}
+.lvlbtn{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:10px 12px;border-radius:12px;border:1px solid rgba(201,162,74,.45);background:linear-gradient(180deg,rgba(60,20,20,.85),rgba(30,10,12,.9));color:#f3e2b6;font:inherit;cursor:pointer}
+.lvlbtn b{display:block;font-size:15px;color:#ffcf7a}.lvlbtn small{display:block;font-size:12px;opacity:.8}
+.lvlbtn .se{font-size:22px}.lvlmax{font-size:12px;color:#c9a24a;border:1px solid rgba(201,162,74,.4);border-radius:10px;padding:2px 7px}
+body.saver .cstars span.on{animation:none}
+
 </style>
 </head>
 <body>
@@ -1024,6 +1040,18 @@ const FLOORS=[null,
  {n:7,np:6,k:6,extra:0,mod:true},
  {n:8,np:7,k:6,extra:0,boss:true}];
 const LAST=9, SHOPS=[3,6], START_HINTS=3;
+const LVLS=[['Normal','Las reglas de siempre.'],
+ ['Imposible 1','Sin pistas extra en los primeros casos.'],
+ ['Imposible 2','Empiezas con solo 1 pista.'],
+ ['Imposible 3','Contrarreloj en más casos, desde el primero.'],
+ ['Imposible 4','El Mercado Negro cobra un 50% más.'],
+ ['Imposible 5','Acusar mal cuesta el doble de oro.'],
+ ['Imposible 6','Mansiones de 8×8 desde el caso 6.'],
+ ['Imposible 7','Apagones más frecuentes.'],
+ ['Imposible 8','Empiezas sin pistas.'],
+ ['Imposible 9','Mansiones de 8×8 desde el caso 4.'],
+ ['Imposible 10','El reloj corre el doble de rápido.']];
+const runLvl=()=>(S.run&&S.run.lvl)||0;
 const susName=d=>`${SUS[d].a} ${SUS[d].r}`;
 
 /* ---------- guardado ---------- */
@@ -1205,6 +1233,7 @@ function renderMenu(){setBg('menu');
   <div class="col" style="margin-top:14px">
     ${S.run?`<button class="btn gold" id="bCont">${ART.icon('play')} Continuar · caso ${S.run.floor}/${LAST}</button>`:''}
     <button class="themebtn" id="bTheme"><span class="tsc">${ART.scene(m.theme||'mansion')}</span><span class="tinfo"><small>ESCENARIO</small><b>${THEMES[m.theme||'mansion'].name}</b><em>${THEME_INFO[m.theme||'mansion'].price?'Expansión':'Incluido'} · cambiar ▸</em></span></button>
+    ${(m.lvlMax||0)>0?`<button class="lvlbtn" id="bLvl"><span class="se">🎚️</span><span class="grow"><b>Dificultad: ${LVLS[Math.min(m.lvl||0,m.lvlMax)][0]}</b><small>${Math.min(m.lvl||0,m.lvlMax)?LVLS[Math.min(m.lvl||0,m.lvlMax)][1]+' Y todo lo anterior.':'Has desbloqueado el modo Imposible · toca para cambiar'}</small></span><span class="lvlmax">${m.lvlMax}/10</span></button>`:''}
     <button class="btn ${S.run?'':'gold'}" id="bNew">${ART.icon('folder')} Nueva investigación</button>
     <button class="btn" id="bDaily">${ART.icon('cal')} Caso del día ${playedToday?'✅':''}<span class="small" style="color:var(--gold);margin-left:auto">🔥 ${streak}</span></button>
     <div class="row"><button class="btn ghost grow" id="bRelics">${ART.icon('bag')} Amuletos</button><button class="btn ghost grow" id="bHelp">${ART.icon('help')} Cómo jugar</button><button class="btn ghost" id="bCfg" aria-label="Ajustes">${ART.icon('cfg')}</button></div>
@@ -1216,6 +1245,7 @@ function renderMenu(){setBg('menu');
   $('#bNew').onclick=()=>{if(S.run){modal(`<div class="paper tape col center"><div class="serif" style="font-size:20px">¿Abandonar la investigación?</div><div class="small">Perderás el progreso de esta partida.</div><div class="row"><button class="btn paperbtn grow" id="mNo">Cancelar</button><button class="btn red grow" id="mYes">Abandonar</button></div></div>`,o=>{o.querySelector('#mNo').onclick=closeModal;o.querySelector('#mYes').onclick=()=>{closeModal();endRun(false,true);};});}else newRun();};
   $('#bDaily').onclick=()=>startDaily();
   $('#bTheme').onclick=showThemes;
+  if($('#bLvl'))$('#bLvl').onclick=()=>{const mx=S.meta.lvlMax||0;S.meta.lvl=((Math.min(S.meta.lvl||0,mx))+1)%(mx+1);save();sfx.note();renderMenu();if(S.run)toast('Se aplica en tu próxima investigación.');};
   $('#bRelics').onclick=showRelics;
   $('#bHelp').onclick=()=>tutorial(0);
   $('#bCfg').onclick=showSettings;
@@ -1275,7 +1305,8 @@ function tutorial(k){
 
 /* ================= PARTIDA ================= */
 function newRun(){
-  S.run={seed:(Math.random()*2**31)|0,theme:S.meta.theme||'mansion',floor:1,livesOn:!!S.meta.livesOn,lives:3,maxLives:3,gold:0,hints:START_HINTS,relics:[],phase:'map',cs:null,stats:{cases:0,early:0,perfect:0,gold:0},shopBought:[],hist:{}};
+  const L=Math.min(S.meta.lvl||0,S.meta.lvlMax||0);
+  S.run={lvl:L,seed:(Math.random()*2**31)|0,theme:S.meta.theme||'mansion',floor:1,livesOn:!!S.meta.livesOn,lives:3,maxLives:3,gold:0,hints:L>=8?0:L>=2?1:START_HINTS,relics:[],phase:'map',cs:null,stats:{cases:0,early:0,perfect:0,gold:0,stars:0},shopBought:[],hist:{}};
   S.meta.runs++;save();renderMap();
 }
 function resumeRun(){
@@ -1310,7 +1341,7 @@ function renderMap(){setBg('desk');
       inner=`<div class="pin"></div>${ART.portrait(7)}${f>r.floor||f===r.floor?'':''}<div class="nn" style="margin-top:4px">El Profesor</div>${f!==r.floor?'<div class="q">?</div>':''}`;
       notes+=`<div class="note boss ${st} ${f===r.floor?'':'locked'}" data-f="${f}" style="left:${p.x}%;top:${p.y-62}px;margin-left:-22%;transform:rotate(${rot}deg);width:40%">${inner}</div>`;
     }else{
-      inner=`<div class="pin"></div><div class="nt">CASO Nº ${f}</div><div class="nn">${st==='future'?'Expediente sellado':caseTitle(f)}</div>${h?`<div class="mug">${ART.portrait(h.s)}<span class="plcb">${ART.placePhoto(h.p,runTheme())}</span></div><span class="stamp done stimg">${ART.img('st_resuelto')}</span>`:''}`;
+      inner=`<div class="pin"></div><div class="nt">CASO Nº ${f}</div><div class="nn">${st==='future'?'Expediente sellado':caseTitle(f)}</div>${h&&h.st?`<div class="nstars">${'★'.repeat(h.st)}<i>${'★'.repeat(3-h.st)}</i></div>`:''}${h?`<div class="mug">${ART.portrait(h.s)}<span class="plcb">${ART.placePhoto(h.p,runTheme())}</span></div><span class="stamp done stimg">${ART.img('st_resuelto')}</span>`:''}`;
       notes+=`<div class="note ${st}" data-f="${f}" style="left:${p.x}%;top:${p.y-(h?44:30)}px;margin-left:-22%;transform:rotate(${rot}deg)">${inner}</div>`;
     }
     if(f>1){const a=pos(f-1),b=p;path+=`M${a.x} ${a.y} Q${(a.x+b.x)/2} ${(a.y+b.y)/2+26} ${b.x} ${b.y} `;}
@@ -1318,7 +1349,7 @@ function renderMap(){setBg('desk');
   const tags=SHOPS.map(f=>{const a=pos(f),b=pos(f+1);return`<div class="shoptag" style="left:${(a.x+b.x)/2}%;top:${(a.y+b.y)/2+4}px">🛒 Mercado</div>`;}).join('');
   screen(`${topBar()}
    <div class="relics" style="min-height:36px">${r.relics.map(k=>`<span class="med ${ART.relic(k)?'mimg':''}" data-k="${k}">${ART.relic(k)||RELICS[k].e}</span>`).join('')||'<span class="small muted">Aún sin amuletos: los ganarás al cerrar casos.</span>'}</div>
-   <div class="themehead">${THEMES[runTheme()].name}<small>${THEMES[runTheme()].tag}</small></div>
+   <div class="themehead">${THEMES[runTheme()].name}<small>${THEMES[runTheme()].tag}${runLvl()?' · 🎚️ '+LVLS[runLvl()][0]:''}</small></div>
    <div class="cork" style="height:${H}px"><svg class="str" viewBox="0 0 100 ${H}" preserveAspectRatio="none"><path d="${path}" stroke="#b3201a" stroke-width="2.4" fill="none" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 2px 1px rgba(0,0,0,.5))"/></svg>${notes}${tags}</div>
    <button class="btn gold" id="bGo" style="position:sticky;bottom:12px;z-index:6">${ART.icon('lens')} ${r.floor===LAST?'Enfrentarse a El Profesor':`Abrir el caso ${r.floor}`}</button>`);
   bindHome();
@@ -1336,12 +1367,16 @@ function buildCase(seed,floor,daily,titleIdx,theme){
   theme=theme||'mansion';const TH=THEMES[theme],CS=CASES_T[theme],VS=VICTIMS_T[theme]||VICTIMS;
   const rng=RNG(seed^0x5bd1e995);
   const cfg=Object.assign({},daily?{n:7,np:6,k:6,extra:0,mod:false}:FLOORS[floor]);
+  const LV=daily?0:runLvl();
+  if(LV>=1){cfg.extra=0;cfg.reveal=false;}
+  if(!cfg.boss&&((LV>=6&&floor>=6)||(LV>=9&&floor>=4))){cfg.n=8;cfg.np=7;}
+  if(LV>=3&&!cfg.boss)cfg.mod=true;
   let mod=null;
   const BASE=CAST_T[theme]||CAST_T.mansion;
-  const pickCast=()=>{const out=Math.floor(rng()*6);const cs=BASE.filter((x,i)=>i!==out);if(theme==='mansion'&&rng()<.5){cs[Math.floor(rng()*cs.length)]=GUESTS[Math.floor(rng()*GUESTS.length)];}return cs;};
+  const pickCast=()=>{const out=Math.floor(rng()*6);const cs=(cfg.np===7&&!cfg.boss)?BASE.slice():BASE.filter((x,i)=>i!==out);if(theme==='mansion'&&rng()<.5){cs[Math.floor(rng()*cs.length)]=GUESTS[Math.floor(rng()*GUESTS.length)];}return cs;};
   if(cfg.boss){cfg.cast=pickCast().concat(7);cfg.forceMurderer=7;mod='profesor';}
   else{cfg.cast=pickCast();
-    if(cfg.mod){const pool=['reloj','apagon',null];mod=pool[Math.floor(rng()*pool.length)];}}
+    if(cfg.mod){const pool=LV>=7?['reloj','apagon','apagon',null]:LV>=3?['reloj','reloj','apagon',null]:['reloj','apagon',null];mod=pool[Math.floor(rng()*pool.length)];}}
   cfg.furn=TH.furn;cfg.stand=TH.stand;cfg.theme=theme;
   let C=null;for(let t=0;t<6&&!C;t++)C=makeCase((seed+t*104729)>>>0,cfg);
   const vName=VS[Math.floor(rng()*VS.length)];
@@ -1354,7 +1389,7 @@ const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
 function newCaseState(B){
   const C=B.C,n=C.n,P=C.np;
   return{C,meta:B.meta,placed:new Array(P).fill(-1),locked:new Array(P).fill(false),xs:new Array(n*n).fill(0),selP:-1,xMode:false,errors:0,elapsed:0,
-    timeLeft:B.meta.mod==='reloj'?Math.max(240,420-B.meta.floor*15):null,wrongAcc:0,placaUsed:false,halconUsed:false,done:false,hintsUsed:0,instinct:null,racha:0};
+    timeLeft:B.meta.mod==='reloj'?Math.round(Math.max(240,420-B.meta.floor*15)*(!B.meta.daily&&runLvl()>=10?.5:1)):null,wrongAcc:0,placaUsed:false,halconUsed:false,done:false,hintsUsed:0,instinct:null,racha:0};
 }
 function startCase(){
   const r=S.run;sfx.folder();
@@ -1595,7 +1630,7 @@ function onAuto(){
 function onHint(){
   const {cs,daily}=ctx();if(cs.done)return;const C=cs.C,n=C.n;
   if(!daily&&S.run.hints<=0){toast('No te quedan pistas. Cómpralas en el Mercado 🛒.');return;}
-  const use=()=>{if(daily)cs.hintsUsed++;else S.run.hints--;};
+  const use=()=>{cs.hintsUsed=(cs.hintsUsed||0)+1;if(!daily)S.run.hints--;};
   // 1) choques de fila/columna o pistas propias incumplidas
   for(let p=0;p<C.np;p++){const c=cs.placed[p];if(c<0||cs.locked[p])continue;
     const bad=C.clues.find(cl=>cl.p===p&&!['same','alone','valone','rel'].includes(cl.t)&&!unaryOK(cl,c,C));
@@ -1639,7 +1674,9 @@ function openAccuse(){
     cs.wrongAcc++;sfx.wrong();
     const b=$('#board');b.style.animation='shake .45s';setTimeout(()=>b.style.animation='',500);
     if(daily){toast('❌ Acusación equivocada. La coartada se sostiene.');save();return;}
-    if(!S.run.livesOn){S.run.gold=Math.max(0,S.run.gold-10);update();toast('❌ Acusación equivocada: −10 de oro. Repasa las pistas.',2600);save();return;}
+    const pen=runLvl()>=5?20:10;
+    if(!S.run.livesOn){S.run.gold=Math.max(0,S.run.gold-pen);update();toast(`❌ Acusación equivocada: −${pen} de oro. Repasa las pistas.`,2600);save();return;}
+    if(runLvl()>=5)S.run.gold=Math.max(0,S.run.gold-10);
     if(has('placa')&&!cs.placaUsed){cs.placaUsed=true;toast('🛡️ Tu placa te protege: esta acusación fallida no cuesta vida.',2400);save();return;}
     loseLife('❌ Acusación equivocada. Pierdes 1 vida.');
   };
@@ -1647,9 +1684,11 @@ function openAccuse(){
 function verdictHTML(cs){
   const C=cs.C,id=C.cast[C.murderer-1],pl=C.roomIds[C.victimRoom],s=SUS[id],P2=plc(C.theme,pl);
   return`<div class="lineupbg"><div class="mugshot"><div class="frame">${ART.portrait(id)}<div class="plate">${s.n.toUpperCase()} · CULPABLE</div>${ART.img('st_culpable','culpst')}</div><div class="polaroid"><div class="ph">${ART.placePhoto(pl,C.theme)}</div><div class="cap">${P2.n}</div></div></div></div>
-  <div style="font-family:'Playfair Display',serif;font-weight:900;font-size:21px;line-height:1.15">Fue ${s.a} ${s.r}, ${s.n}, en ${P2.a} ${P2.n.toLowerCase()}.</div>
+  <div style="font-family:'Playfair Display',serif;font-weight:900;font-size:21px;line-height:1.15">Fue ${id===7?'El Profesor':`${s.a} ${s.r}, ${s.n}`}, en ${P2.a} ${P2.n.toLowerCase()}.</div>
   <div class="small" style="color:#6d5d43">Estaba a solas con ${cs.meta.victim}.</div>`;
 }
+const caseStars=cs=>1+(!(cs.hintsUsed>0)?1:0)+(cs.wrongAcc===0?1:0);
+const starsHTML=(n,big)=>`<div class="cstars${big?' big':''}">${[0,1,2].map(i=>`<span class="${i<n?'on':''}" style="animation-delay:${.25+i*.18}s">★</span>`).join('')}</div>`;
 function solveCase(left){
   const {cs,daily}=ctx();const C=cs.C;
   const good=cs.placed.filter((c,p)=>c>=0&&!cs.locked[p]&&c===C.cells[p]).length,bad=cs.placed.filter((c,p)=>c>=0&&!cs.locked[p]&&c!==C.cells[p]).length;
@@ -1663,7 +1702,8 @@ function solveCase(left){
   cs.racha=rach;
   let total=base+early+perfect+rach;const mult=has('contable');if(mult)total=Math.round(total*1.4);
   r.gold+=total;r.stats.gold+=total;r.stats.cases++;if(left>0)r.stats.early++;if(perfect)r.stats.perfect++;
-  r.hist=r.hist||{};r.hist[fl]={s:C.cast[C.murderer-1],p:C.roomIds[C.victimRoom]};
+  const stars=caseStars(cs);r.stats.stars=(r.stats.stars||0)+stars;S.meta.stars=(S.meta.stars||0)+stars;
+  r.hist=r.hist||{};r.hist[fl]={s:C.cast[C.murderer-1],p:C.roomIds[C.victimRoom],st:stars};
   S.meta.cases++;
   let healed=false;if(r.livesOn&&has('botiquin')&&cs.wrongAcc===0&&r.lives<r.maxLives){r.lives++;healed=true;}
   const boss=fl===LAST;
@@ -1672,6 +1712,7 @@ function solveCase(left){
     modal(`<div class="paper col center">
       ${verdictHTML(cs)}
       <div><span class="stamp stimg slam">${ART.img('st_cerrado')}</span></div>
+      ${starsHTML(stars,true)}<div class="small starkey">★ resuelto · ★ sin pistas · ★ sin fallos al acusar</div>
       <div style="text-align:left">
         <div class="kv"><span>Caso resuelto</span><b>+${base}</b></div>
         <div class="kv"><span>Acusación anticipada (${left} sin situar)</span><b>+${early}</b></div>
@@ -1729,6 +1770,7 @@ function renderShop(){setBg('shop');
    <div class="col">${r.shop.map(it=>{const x=it.relic?RELICS[it.relic]:it;const bought=r.shopBought.includes(it.id);const dis=bought||r.gold<it.price||(it.id==='life'&&r.lives>=r.maxLives);
      return`<button class="rcard" data-id="${it.id}" ${dis?'disabled style="opacity:.42"':''}>${med(x.e,true,it.relic)}<div class="grow"><div class="n">${x.n}</div><div class="d">${x.d}</div></div><span class="price">${bought?'✓':ART.coin+it.price}</span></button>`;}).join('')}</div>
    <button class="btn gold" id="bOut" style="margin-top:16px">Salir del Mercado</button>`);
+  if(runLvl()>=4&&!r.shopUp){r.shop.forEach(it=>it.price=Math.round(it.price*1.5));r.shopUp=true;}
   bindHome();
   document.querySelectorAll('.rcard[data-id]').forEach(b=>b.onclick=()=>{
     const it=r.shop.find(x=>x.id===b.dataset.id);if(r.gold<it.price)return;
@@ -1743,7 +1785,8 @@ function endRun(win,abandon){setBg('city');
   stopTimer();closeModal();document.onkeydown=null;
   const r=S.run;if(!r){renderMenu();return;}
   const st=r.stats;
-  const rep=abandon?0:st.cases*2+st.early+(win?10:0);
+  const L=r.lvl||0;const rep=abandon?0:Math.round((st.cases*2+st.early+(win?10:0))*(1+.15*L));
+  let lvlUp=0;if(win&&!abandon&&L>=(S.meta.lvlMax||0)&&L<10){S.meta.lvlMax=L+1;lvlUp=L+1;}
   const before=S.meta.rep;
   S.meta.rep+=rep;S.meta.best=Math.max(S.meta.best,st.cases);if(win)S.meta.wins++;
   const newUnlocks=Object.entries(RELICS).filter(([k,x])=>x.unlock&&before<x.unlock&&S.meta.rep>=x.unlock);
@@ -1761,9 +1804,12 @@ function endRun(win,abandon){setBg('city');
        <div class="kv"><span>Acusaciones anticipadas</span><b>${st.early}</b></div>
        <div class="kv"><span>Casos perfectos</span><b>${st.perfect}</b></div>
        <div class="kv"><span>Oro reunido</span><b>${ART.coin} ${st.gold}</b></div>
+       <div class="kv"><span>Estrellas</span><b class="gstar">★ ${st.stars||0}/${LAST*3}</b></div>
+       ${L?`<div class="kv"><span>Dificultad</span><b>${LVLS[L][0]} (+${L*15}% reputación)</b></div>`:''}
        <div class="kv"><span><b>Reputación ganada</b></span><b>⭐ +${rep}</b></div>
      </div>
      ${rkA[1]!==rkB[1]?`<div class="row" style="justify-content:center">${ART.img('rank'+(1+RANKS.indexOf(rkA)),'rankimg big')}<div class="stamp" style="border-color:var(--gold2);color:var(--gold2)">ASCENSO: ${rkA[1]}</div></div>`:''}
+     ${lvlUp?`<div class="lvlup">🔓 Desbloqueado: <b>${LVLS[lvlUp][0]}</b><div class="small">${LVLS[lvlUp][1]}</div></div>`:''}
      ${newUnlocks.map(([k,x])=>`<div class="row" style="justify-content:center">${med(x.e,false,k)} <span>Nuevo amuleto: <b>${x.n}</b></span></div>`).join('')}
      <button class="btn gold" id="bAgain">${ART.icon('folder')} Otra investigación</button>
      <button class="btn paperbtn" id="bMenu">Menú</button></div>`);
@@ -1783,16 +1829,22 @@ function startDaily(){
 }
 function finishDaily(empty){
   const cs=S.daily.cs,t=today(),dd=S.meta.daily;
-  const res={n:dailyNumber(),time:cs.elapsed,errors:cs.errors,wrong:cs.wrongAcc,empty,hints:cs.hintsUsed};
+  const res={n:dailyNumber(),time:cs.elapsed,errors:cs.errors,wrong:cs.wrongAcc,empty,hints:cs.hintsUsed,stars:caseStars(cs)};
   dd.results[t]=res;
   const ks=Object.keys(dd.results).sort();if(ks.length>40)delete dd.results[ks[0]];
   dd.streak=dd.last===yesterday()?dd.streak+1:(dd.last===t?dd.streak:1);dd.last=t;dd.best=Math.max(dd.best,dd.streak);
   S.daily.active=false;save();
   setTimeout(()=>showDailyResult(res,true),700);
 }
+async function shareResult(txt){
+  try{const P=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Share;
+    if(P){await P.share({text:txt,dialogTitle:'Sudoku Noir'});return;}
+    if(navigator.share){await navigator.share({text:txt});return;}}catch(e){if(e&&/cancel/i.test(String(e.message||e)))return;}
+  try{await navigator.clipboard.writeText(txt);toast('Copiado. ¡Reta a tus amigos!');}catch(e){toast('No se pudo copiar: selecciona el texto.');}
+}
 function shareText(r){
-  const sq=r.errors+r.wrong===0?'🟩🟩🟩':r.errors+r.wrong<3?'🟩🟨🟨':'🟨🟥🟥';
-  return`🕵️ Sudoku Noir · Caso del día #${r.n}\n⏱ ${fmt(r.time)} · ❌ ${r.errors+r.wrong} · 💡 ${r.hints}\n🔎 Acusé con ${r.empty} personas sin situar\n${sq} Racha 🔥${S.meta.daily.streak}`;
+  const st=r.stars||(1+(r.hints?0:1)+(r.wrong?0:1));const sq='⭐'.repeat(st)+'▪️'.repeat(3-st);
+  return`🕵️ Sudoku Noir · Caso del día #${r.n}\n${sq}\n⏱ ${fmt(r.time)} · ❌ ${r.errors+r.wrong} · 💡 ${r.hints}\n🔎 Acusé con ${r.empty} personas sin situar\n🔥 Racha: ${S.meta.daily.streak}`;
 }
 function showDailyResult(r,fresh){
   stopTimer();document.onkeydown=null;
@@ -1800,6 +1852,7 @@ function showDailyResult(r,fresh){
   modal(`<div class="paper col center">
     ${P?verdictHTML(P):''}
     <div><span class="stamp ${fresh?'slam':''}">CASO DEL DÍA #${r.n}</span></div>
+    ${starsHTML(r.stars||(1+(r.hints?0:1)+(r.wrong?0:1)),true)}
     <div style="text-align:left">
       <div class="kv"><span>Tiempo</span><b>${fmt(r.time)}</b></div>
       <div class="kv"><span>Errores</span><b>${r.errors}</b></div>
@@ -1808,10 +1861,11 @@ function showDailyResult(r,fresh){
       <div class="kv"><span>Racha diaria</span><b>🔥 ${S.meta.daily.streak} (mejor ${S.meta.daily.best})</b></div>
     </div>
     <pre style="background:rgba(160,120,60,.15);border:1px dashed #b9a57c;border-radius:4px;padding:8px;font-size:13px;white-space:pre-wrap;text-align:left;margin:0;font-family:'Special Elite',monospace">${shareText(r)}</pre>
-    <button class="btn gold" id="mCopy">📋 Copiar resultado</button>
+    <div class="row"><button class="btn gold grow" id="mShare">📤 Compartir</button><button class="btn paperbtn grow" id="mCopy">📋 Copiar</button></div>
     <div class="small" style="color:#6d5d43">Vuelve mañana para un caso nuevo.</div>
     <button class="btn paperbtn" id="mM">Menú</button></div>`,o=>{
       if(fresh)setTimeout(sfx.stamp,120);
+      o.querySelector('#mShare').onclick=()=>shareResult(shareText(r));
       o.querySelector('#mCopy').onclick=async()=>{try{await navigator.clipboard.writeText(shareText(r));toast('Copiado. ¡Reta a tus amigos!');}catch(e){toast('No se pudo copiar: selecciona el texto.');}};
       o.querySelector('#mM').onclick=()=>{closeModal();if(S.daily)S.daily.active=false;save();renderMenu();};
     });
@@ -2353,7 +2407,7 @@ return{portrait,place,icon,heart,coin,detective,mansion,skyline,objIcon,victim,s
 
 /* ================= JUEGO ================= */
 const app=document.getElementById('app');
-const SUS=[null,{n:'Bruno',r:'butler',a:'el'},{n:'Elvira',r:'countess',a:'la'},{n:'Tomás',r:'gardener',a:'el'},{n:'Marta',r:'cook',a:'la'},{n:'Ríos',r:'colonel',a:'el'},{n:'Leo',r:'nephew',a:'el'},{n:'Profesor',r:'professor',a:'el'},
+const SUS=[null,{n:'Bruno',r:'butler',a:'el'},{n:'Elvira',r:'countess',a:'la'},{n:'Tomás',r:'gardener',a:'el'},{n:'Marta',r:'cook',a:'la'},{n:'Ríos',r:'colonel',a:'el'},{n:'Leo',r:'nephew',a:'el'},{n:'Professor',r:'professor',a:'el'},
  /* tren 8-13 */{n:'Gustav',r:'conductor',a:'el'},{n:'Jack',r:'engine driver',a:'el'},{n:'Natasha',r:'spy',a:'la'},{n:'Brenner',r:'doctor',a:'el'},{n:'Victor',r:'card sharp',a:'el'},{n:'Miss Grey',r:'governess',a:'la'},
  /* barco 14-19 */{n:'Mortimer',r:'captain',a:'el'},{n:'Billy',r:'sailor',a:'el'},{n:'Ruby',r:'singer',a:'la'},{n:'Rockwell',r:'millionaire',a:'el'},{n:'Molly',r:'stewardess',a:'la'},{n:'Grady',r:'stoker',a:'el'},
  /* mina 20-25 */{n:'Davies',r:'foreman',a:'el'},{n:'Owen',r:'miner',a:'el'},{n:'Ada',r:'engineer',a:'la'},{n:'Rhian',r:'telegraphist',a:'la'},{n:'Gwen',r:'cook',a:'la'},{n:'Abe',r:'gold prospector',a:'el'},
@@ -2421,6 +2475,18 @@ const FLOORS=[null,
  {n:7,np:6,k:6,extra:0,mod:true},
  {n:8,np:7,k:6,extra:0,boss:true}];
 const LAST=9, SHOPS=[3,6], START_HINTS=3;
+const LVLS=[['Normal','The usual rules.'],
+ ['Impossible 1','No extra clues in the early cases.'],
+ ['Impossible 2','You start with just 1 hint.'],
+ ['Impossible 3','Against the Clock in more cases, from the very first.'],
+ ['Impossible 4','The Black Market charges 50% more.'],
+ ['Impossible 5','Wrong accusations cost double gold.'],
+ ['Impossible 6','8×8 boards from case 6.'],
+ ['Impossible 7','More frequent blackouts.'],
+ ['Impossible 8','You start with no hints.'],
+ ['Impossible 9','8×8 boards from case 4.'],
+ ['Impossible 10','The clock runs twice as fast.']];
+const runLvl=()=>(S.run&&S.run.lvl)||0;
 const susName=d=>`the ${SUS[d].r}`;
 
 /* ---------- guardado ---------- */
@@ -2602,6 +2668,7 @@ function renderMenu(){setBg('menu');
   <div class="col" style="margin-top:14px">
     ${S.run?`<button class="btn gold" id="bCont">${ART.icon('play')} Continue · case ${S.run.floor}/${LAST}</button>`:''}
     <button class="themebtn" id="bTheme"><span class="tsc">${ART.scene(m.theme||'mansion')}</span><span class="tinfo"><small>SETTING</small><b>${THEMES[m.theme||'mansion'].name}</b><em>${THEME_INFO[m.theme||'mansion'].price?'Expansion':'Included'} · change ▸</em></span></button>
+    ${(m.lvlMax||0)>0?`<button class="lvlbtn" id="bLvl"><span class="se">🎚️</span><span class="grow"><b>Difficulty: ${LVLS[Math.min(m.lvl||0,m.lvlMax)][0]}</b><small>${Math.min(m.lvl||0,m.lvlMax)?LVLS[Math.min(m.lvl||0,m.lvlMax)][1]+' Plus everything before.':'You’ve unlocked Impossible mode · tap to change'}</small></span><span class="lvlmax">${m.lvlMax}/10</span></button>`:''}
     <button class="btn ${S.run?'':'gold'}" id="bNew">${ART.icon('folder')} New investigation</button>
     <button class="btn" id="bDaily">${ART.icon('cal')} Case of the Day ${playedToday?'✅':''}<span class="small" style="color:var(--gold);margin-left:auto">🔥 ${streak}</span></button>
     <div class="row"><button class="btn ghost grow" id="bRelics">${ART.icon('bag')} Charms</button><button class="btn ghost grow" id="bHelp">${ART.icon('help')} How to play</button><button class="btn ghost" id="bCfg" aria-label="Settings">${ART.icon('cfg')}</button></div>
@@ -2613,6 +2680,7 @@ function renderMenu(){setBg('menu');
   $('#bNew').onclick=()=>{if(S.run){modal(`<div class="paper tape col center"><div class="serif" style="font-size:20px">Abandon the investigation?</div><div class="small">You’ll lose this investigation’s progress.</div><div class="row"><button class="btn paperbtn grow" id="mNo">Cancel</button><button class="btn red grow" id="mYes">Abandon</button></div></div>`,o=>{o.querySelector('#mNo').onclick=closeModal;o.querySelector('#mYes').onclick=()=>{closeModal();endRun(false,true);};});}else newRun();};
   $('#bDaily').onclick=()=>startDaily();
   $('#bTheme').onclick=showThemes;
+  if($('#bLvl'))$('#bLvl').onclick=()=>{const mx=S.meta.lvlMax||0;S.meta.lvl=((Math.min(S.meta.lvl||0,mx))+1)%(mx+1);save();sfx.note();renderMenu();if(S.run)toast('Applies to your next investigation.');};
   $('#bRelics').onclick=showRelics;
   $('#bHelp').onclick=()=>tutorial(0);
   $('#bCfg').onclick=showSettings;
@@ -2672,7 +2740,8 @@ function tutorial(k){
 
 /* ================= PARTIDA ================= */
 function newRun(){
-  S.run={seed:(Math.random()*2**31)|0,theme:S.meta.theme||'mansion',floor:1,livesOn:!!S.meta.livesOn,lives:3,maxLives:3,gold:0,hints:START_HINTS,relics:[],phase:'map',cs:null,stats:{cases:0,early:0,perfect:0,gold:0},shopBought:[],hist:{}};
+  const L=Math.min(S.meta.lvl||0,S.meta.lvlMax||0);
+  S.run={lvl:L,seed:(Math.random()*2**31)|0,theme:S.meta.theme||'mansion',floor:1,livesOn:!!S.meta.livesOn,lives:3,maxLives:3,gold:0,hints:L>=8?0:L>=2?1:START_HINTS,relics:[],phase:'map',cs:null,stats:{cases:0,early:0,perfect:0,gold:0,stars:0},shopBought:[],hist:{}};
   S.meta.runs++;save();renderMap();
 }
 function resumeRun(){
@@ -2707,7 +2776,7 @@ function renderMap(){setBg('desk');
       inner=`<div class="pin"></div>${ART.portrait(7)}${f>r.floor||f===r.floor?'':''}<div class="nn" style="margin-top:4px">The Professor</div>${f!==r.floor?'<div class="q">?</div>':''}`;
       notes+=`<div class="note boss ${st} ${f===r.floor?'':'locked'}" data-f="${f}" style="left:${p.x}%;top:${p.y-62}px;margin-left:-22%;transform:rotate(${rot}deg);width:40%">${inner}</div>`;
     }else{
-      inner=`<div class="pin"></div><div class="nt">CASE No. ${f}</div><div class="nn">${st==='future'?'Sealed file':caseTitle(f)}</div>${h?`<div class="mug">${ART.portrait(h.s)}<span class="plcb">${ART.placePhoto(h.p,runTheme())}</span></div><span class="stamp done">SOLVED</span>`:''}`;
+      inner=`<div class="pin"></div><div class="nt">CASE No. ${f}</div><div class="nn">${st==='future'?'Sealed file':caseTitle(f)}</div>${h&&h.st?`<div class="nstars">${'★'.repeat(h.st)}<i>${'★'.repeat(3-h.st)}</i></div>`:''}${h?`<div class="mug">${ART.portrait(h.s)}<span class="plcb">${ART.placePhoto(h.p,runTheme())}</span></div><span class="stamp done">SOLVED</span>`:''}`;
       notes+=`<div class="note ${st}" data-f="${f}" style="left:${p.x}%;top:${p.y-(h?44:30)}px;margin-left:-22%;transform:rotate(${rot}deg)">${inner}</div>`;
     }
     if(f>1){const a=pos(f-1),b=p;path+=`M${a.x} ${a.y} Q${(a.x+b.x)/2} ${(a.y+b.y)/2+26} ${b.x} ${b.y} `;}
@@ -2715,7 +2784,7 @@ function renderMap(){setBg('desk');
   const tags=SHOPS.map(f=>{const a=pos(f),b=pos(f+1);return`<div class="shoptag" style="left:${(a.x+b.x)/2}%;top:${(a.y+b.y)/2+4}px">🛒 Market</div>`;}).join('');
   screen(`${topBar()}
    <div class="relics" style="min-height:36px">${r.relics.map(k=>`<span class="med ${ART.relic(k)?'mimg':''}" data-k="${k}">${ART.relic(k)||RELICS[k].e}</span>`).join('')||'<span class="small muted">No charms yet: you’ll earn them by closing cases.</span>'}</div>
-   <div class="themehead">${THEMES[runTheme()].name}<small>${THEMES[runTheme()].tag}</small></div>
+   <div class="themehead">${THEMES[runTheme()].name}<small>${THEMES[runTheme()].tag}${runLvl()?' · 🎚️ '+LVLS[runLvl()][0]:''}</small></div>
    <div class="cork" style="height:${H}px"><svg class="str" viewBox="0 0 100 ${H}" preserveAspectRatio="none"><path d="${path}" stroke="#b3201a" stroke-width="2.4" fill="none" vector-effect="non-scaling-stroke" style="filter:drop-shadow(0 2px 1px rgba(0,0,0,.5))"/></svg>${notes}${tags}</div>
    <button class="btn gold" id="bGo" style="position:sticky;bottom:12px;z-index:6">${ART.icon('lens')} ${r.floor===LAST?'Face the Professor':`Open case ${r.floor}`}</button>`);
   bindHome();
@@ -2733,12 +2802,16 @@ function buildCase(seed,floor,daily,titleIdx,theme){
   theme=theme||'mansion';const TH=THEMES[theme],CS=CASES_T[theme],VS=VICTIMS_T[theme]||VICTIMS;
   const rng=RNG(seed^0x5bd1e995);
   const cfg=Object.assign({},daily?{n:7,np:6,k:6,extra:0,mod:false}:FLOORS[floor]);
+  const LV=daily?0:runLvl();
+  if(LV>=1){cfg.extra=0;cfg.reveal=false;}
+  if(!cfg.boss&&((LV>=6&&floor>=6)||(LV>=9&&floor>=4))){cfg.n=8;cfg.np=7;}
+  if(LV>=3&&!cfg.boss)cfg.mod=true;
   let mod=null;
   const BASE=CAST_T[theme]||CAST_T.mansion;
-  const pickCast=()=>{const out=Math.floor(rng()*6);const cs=BASE.filter((x,i)=>i!==out);if(theme==='mansion'&&rng()<.5){cs[Math.floor(rng()*cs.length)]=GUESTS[Math.floor(rng()*GUESTS.length)];}return cs;};
+  const pickCast=()=>{const out=Math.floor(rng()*6);const cs=(cfg.np===7&&!cfg.boss)?BASE.slice():BASE.filter((x,i)=>i!==out);if(theme==='mansion'&&rng()<.5){cs[Math.floor(rng()*cs.length)]=GUESTS[Math.floor(rng()*GUESTS.length)];}return cs;};
   if(cfg.boss){cfg.cast=pickCast().concat(7);cfg.forceMurderer=7;mod='profesor';}
   else{cfg.cast=pickCast();
-    if(cfg.mod){const pool=['reloj','apagon',null];mod=pool[Math.floor(rng()*pool.length)];}}
+    if(cfg.mod){const pool=LV>=7?['reloj','apagon','apagon',null]:LV>=3?['reloj','reloj','apagon',null]:['reloj','apagon',null];mod=pool[Math.floor(rng()*pool.length)];}}
   cfg.furn=TH.furn;cfg.stand=TH.stand;cfg.theme=theme;
   let C=null;for(let t=0;t<6&&!C;t++)C=makeCase((seed+t*104729)>>>0,cfg);
   const vName=VS[Math.floor(rng()*VS.length)];
@@ -2751,7 +2824,7 @@ const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
 function newCaseState(B){
   const C=B.C,n=C.n,P=C.np;
   return{C,meta:B.meta,placed:new Array(P).fill(-1),locked:new Array(P).fill(false),xs:new Array(n*n).fill(0),selP:-1,xMode:false,errors:0,elapsed:0,
-    timeLeft:B.meta.mod==='reloj'?Math.max(240,420-B.meta.floor*15):null,wrongAcc:0,placaUsed:false,halconUsed:false,done:false,hintsUsed:0,instinct:null,racha:0};
+    timeLeft:B.meta.mod==='reloj'?Math.round(Math.max(240,420-B.meta.floor*15)*(!B.meta.daily&&runLvl()>=10?.5:1)):null,wrongAcc:0,placaUsed:false,halconUsed:false,done:false,hintsUsed:0,instinct:null,racha:0};
 }
 function startCase(){
   const r=S.run;sfx.folder();
@@ -2992,7 +3065,7 @@ function onAuto(){
 function onHint(){
   const {cs,daily}=ctx();if(cs.done)return;const C=cs.C,n=C.n;
   if(!daily&&S.run.hints<=0){toast('No hints left. Buy them at the Market 🛒.');return;}
-  const use=()=>{if(daily)cs.hintsUsed++;else S.run.hints--;};
+  const use=()=>{cs.hintsUsed=(cs.hintsUsed||0)+1;if(!daily)S.run.hints--;};
   // 1) choques de fila/columna o pistas propias incumplidas
   for(let p=0;p<C.np;p++){const c=cs.placed[p];if(c<0||cs.locked[p])continue;
     const bad=C.clues.find(cl=>cl.p===p&&!['same','alone','valone','rel'].includes(cl.t)&&!unaryOK(cl,c,C));
@@ -3036,7 +3109,9 @@ function openAccuse(){
     cs.wrongAcc++;sfx.wrong();
     const b=$('#board');b.style.animation='shake .45s';setTimeout(()=>b.style.animation='',500);
     if(daily){toast('❌ Wrong accusation. The alibi holds up.');save();return;}
-    if(!S.run.livesOn){S.run.gold=Math.max(0,S.run.gold-10);update();toast('❌ Wrong accusation: −10 gold. Go over the clues again.',2600);save();return;}
+    const pen=runLvl()>=5?20:10;
+    if(!S.run.livesOn){S.run.gold=Math.max(0,S.run.gold-pen);update();toast(`❌ Wrong accusation: −${pen} gold. Go over the clues again.`,2600);save();return;}
+    if(runLvl()>=5)S.run.gold=Math.max(0,S.run.gold-10);
     if(has('placa')&&!cs.placaUsed){cs.placaUsed=true;toast('🛡️ Your badge protects you: this wrong accusation costs no life.',2400);save();return;}
     loseLife('❌ Wrong accusation. You lose 1 life.');
   };
@@ -3044,9 +3119,11 @@ function openAccuse(){
 function verdictHTML(cs){
   const C=cs.C,id=C.cast[C.murderer-1],pl=C.roomIds[C.victimRoom],s=SUS[id],P2=plc(C.theme,pl);
   return`<div class="lineupbg"><div class="mugshot"><div class="frame">${ART.portrait(id)}<div class="plate">${s.n.toUpperCase()} · GUILTY</div></div><div class="polaroid"><div class="ph">${ART.placePhoto(pl,C.theme)}</div><div class="cap">${P2.n}</div></div></div></div>
-  <div style="font-family:'Playfair Display',serif;font-weight:900;font-size:21px;line-height:1.15">It was the ${s.r}, ${s.n}, in the ${P2.n}.</div>
+  <div style="font-family:'Playfair Display',serif;font-weight:900;font-size:21px;line-height:1.15">It was ${id===7?'the Professor':`the ${s.r}, ${s.n}`}, in the ${P2.n}.</div>
   <div class="small" style="color:#6d5d43">Was alone with ${cs.meta.victim}.</div>`;
 }
+const caseStars=cs=>1+(!(cs.hintsUsed>0)?1:0)+(cs.wrongAcc===0?1:0);
+const starsHTML=(n,big)=>`<div class="cstars${big?' big':''}">${[0,1,2].map(i=>`<span class="${i<n?'on':''}" style="animation-delay:${.25+i*.18}s">★</span>`).join('')}</div>`;
 function solveCase(left){
   const {cs,daily}=ctx();const C=cs.C;
   const good=cs.placed.filter((c,p)=>c>=0&&!cs.locked[p]&&c===C.cells[p]).length,bad=cs.placed.filter((c,p)=>c>=0&&!cs.locked[p]&&c!==C.cells[p]).length;
@@ -3060,7 +3137,8 @@ function solveCase(left){
   cs.racha=rach;
   let total=base+early+perfect+rach;const mult=has('contable');if(mult)total=Math.round(total*1.4);
   r.gold+=total;r.stats.gold+=total;r.stats.cases++;if(left>0)r.stats.early++;if(perfect)r.stats.perfect++;
-  r.hist=r.hist||{};r.hist[fl]={s:C.cast[C.murderer-1],p:C.roomIds[C.victimRoom]};
+  const stars=caseStars(cs);r.stats.stars=(r.stats.stars||0)+stars;S.meta.stars=(S.meta.stars||0)+stars;
+  r.hist=r.hist||{};r.hist[fl]={s:C.cast[C.murderer-1],p:C.roomIds[C.victimRoom],st:stars};
   S.meta.cases++;
   let healed=false;if(r.livesOn&&has('botiquin')&&cs.wrongAcc===0&&r.lives<r.maxLives){r.lives++;healed=true;}
   const boss=fl===LAST;
@@ -3069,6 +3147,7 @@ function solveCase(left){
     modal(`<div class="paper col center">
       ${verdictHTML(cs)}
       <div><span class="stamp slam">CASE CLOSED</span></div>
+      ${starsHTML(stars,true)}<div class="small starkey">★ solved · ★ no hints · ★ no wrong accusations</div>
       <div style="text-align:left">
         <div class="kv"><span>Case solved</span><b>+${base}</b></div>
         <div class="kv"><span>Early accusation (${left} unplaced)</span><b>+${early}</b></div>
@@ -3126,6 +3205,7 @@ function renderShop(){setBg('shop');
    <div class="col">${r.shop.map(it=>{const x=it.relic?RELICS[it.relic]:it;const bought=r.shopBought.includes(it.id);const dis=bought||r.gold<it.price||(it.id==='life'&&r.lives>=r.maxLives);
      return`<button class="rcard" data-id="${it.id}" ${dis?'disabled style="opacity:.42"':''}>${med(x.e,true,it.relic)}<div class="grow"><div class="n">${x.n}</div><div class="d">${x.d}</div></div><span class="price">${bought?'✓':ART.coin+it.price}</span></button>`;}).join('')}</div>
    <button class="btn gold" id="bOut" style="margin-top:16px">Leave the Market</button>`);
+  if(runLvl()>=4&&!r.shopUp){r.shop.forEach(it=>it.price=Math.round(it.price*1.5));r.shopUp=true;}
   bindHome();
   document.querySelectorAll('.rcard[data-id]').forEach(b=>b.onclick=()=>{
     const it=r.shop.find(x=>x.id===b.dataset.id);if(r.gold<it.price)return;
@@ -3140,7 +3220,8 @@ function endRun(win,abandon){setBg('city');
   stopTimer();closeModal();document.onkeydown=null;
   const r=S.run;if(!r){renderMenu();return;}
   const st=r.stats;
-  const rep=abandon?0:st.cases*2+st.early+(win?10:0);
+  const L=r.lvl||0;const rep=abandon?0:Math.round((st.cases*2+st.early+(win?10:0))*(1+.15*L));
+  let lvlUp=0;if(win&&!abandon&&L>=(S.meta.lvlMax||0)&&L<10){S.meta.lvlMax=L+1;lvlUp=L+1;}
   const before=S.meta.rep;
   S.meta.rep+=rep;S.meta.best=Math.max(S.meta.best,st.cases);if(win)S.meta.wins++;
   const newUnlocks=Object.entries(RELICS).filter(([k,x])=>x.unlock&&before<x.unlock&&S.meta.rep>=x.unlock);
@@ -3158,9 +3239,12 @@ function endRun(win,abandon){setBg('city');
        <div class="kv"><span>Early accusations</span><b>${st.early}</b></div>
        <div class="kv"><span>Perfect cases</span><b>${st.perfect}</b></div>
        <div class="kv"><span>Gold collected</span><b>${ART.coin} ${st.gold}</b></div>
+       <div class="kv"><span>Stars</span><b class="gstar">★ ${st.stars||0}/${LAST*3}</b></div>
+       ${L?`<div class="kv"><span>Difficulty</span><b>${LVLS[L][0]} (+${L*15}% reputation)</b></div>`:''}
        <div class="kv"><span><b>Reputation earned</b></span><b>⭐ +${rep}</b></div>
      </div>
      ${rkA[1]!==rkB[1]?`<div class="row" style="justify-content:center">${ART.img('rank'+(1+RANKS.indexOf(rkA)),'rankimg big')}<div class="stamp" style="border-color:var(--gold2);color:var(--gold2)">PROMOTED: ${rkA[1]}</div></div>`:''}
+     ${lvlUp?`<div class="lvlup">🔓 Unlocked: <b>${LVLS[lvlUp][0]}</b><div class="small">${LVLS[lvlUp][1]}</div></div>`:''}
      ${newUnlocks.map(([k,x])=>`<div class="row" style="justify-content:center">${med(x.e,false,k)} <span>New charm: <b>${x.n}</b></span></div>`).join('')}
      <button class="btn gold" id="bAgain">${ART.icon('folder')} Another investigation</button>
      <button class="btn paperbtn" id="bMenu">Menu</button></div>`);
@@ -3180,16 +3264,22 @@ function startDaily(){
 }
 function finishDaily(empty){
   const cs=S.daily.cs,t=today(),dd=S.meta.daily;
-  const res={n:dailyNumber(),time:cs.elapsed,errors:cs.errors,wrong:cs.wrongAcc,empty,hints:cs.hintsUsed};
+  const res={n:dailyNumber(),time:cs.elapsed,errors:cs.errors,wrong:cs.wrongAcc,empty,hints:cs.hintsUsed,stars:caseStars(cs)};
   dd.results[t]=res;
   const ks=Object.keys(dd.results).sort();if(ks.length>40)delete dd.results[ks[0]];
   dd.streak=dd.last===yesterday()?dd.streak+1:(dd.last===t?dd.streak:1);dd.last=t;dd.best=Math.max(dd.best,dd.streak);
   S.daily.active=false;save();
   setTimeout(()=>showDailyResult(res,true),700);
 }
+async function shareResult(txt){
+  try{const P=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.Share;
+    if(P){await P.share({text:txt,dialogTitle:'Sudoku Noir'});return;}
+    if(navigator.share){await navigator.share({text:txt});return;}}catch(e){if(e&&/cancel/i.test(String(e.message||e)))return;}
+  try{await navigator.clipboard.writeText(txt);toast('Copied. Challenge your friends!');}catch(e){toast('Couldn’t copy: select the text.');}
+}
 function shareText(r){
-  const sq=r.errors+r.wrong===0?'🟩🟩🟩':r.errors+r.wrong<3?'🟩🟨🟨':'🟨🟥🟥';
-  return`🕵️ Sudoku Noir · Case of the Day #${r.n}\n⏱ ${fmt(r.time)} · ❌ ${r.errors+r.wrong} · 💡 ${r.hints}\n🔎 I accused with ${r.empty} people unplaced\n${sq} Streak 🔥${S.meta.daily.streak}`;
+  const st=r.stars||(1+(r.hints?0:1)+(r.wrong?0:1));const sq='⭐'.repeat(st)+'▪️'.repeat(3-st);
+  return`🕵️ Sudoku Noir · Case of the Day #${r.n}\n${sq}\n⏱ ${fmt(r.time)} · ❌ ${r.errors+r.wrong} · 💡 ${r.hints}\n🔎 I accused with ${r.empty} people unplaced\n🔥 Streak: ${S.meta.daily.streak}`;
 }
 function showDailyResult(r,fresh){
   stopTimer();document.onkeydown=null;
@@ -3197,6 +3287,7 @@ function showDailyResult(r,fresh){
   modal(`<div class="paper col center">
     ${P?verdictHTML(P):''}
     <div><span class="stamp ${fresh?'slam':''}">CASE OF THE DAY #${r.n}</span></div>
+    ${starsHTML(r.stars||(1+(r.hints?0:1)+(r.wrong?0:1)),true)}
     <div style="text-align:left">
       <div class="kv"><span>Time</span><b>${fmt(r.time)}</b></div>
       <div class="kv"><span>Mistakes</span><b>${r.errors}</b></div>
@@ -3205,10 +3296,11 @@ function showDailyResult(r,fresh){
       <div class="kv"><span>Daily streak</span><b>🔥 ${S.meta.daily.streak} (best ${S.meta.daily.best})</b></div>
     </div>
     <pre style="background:rgba(160,120,60,.15);border:1px dashed #b9a57c;border-radius:4px;padding:8px;font-size:13px;white-space:pre-wrap;text-align:left;margin:0;font-family:'Special Elite',monospace">${shareText(r)}</pre>
-    <button class="btn gold" id="mCopy">📋 Copy result</button>
+    <div class="row"><button class="btn gold grow" id="mShare">📤 Share</button><button class="btn paperbtn grow" id="mCopy">📋 Copy</button></div>
     <div class="small" style="color:#6d5d43">Come back tomorrow for a new case.</div>
     <button class="btn paperbtn" id="mM">Menu</button></div>`,o=>{
       if(fresh)setTimeout(sfx.stamp,120);
+      o.querySelector('#mShare').onclick=()=>shareResult(shareText(r));
       o.querySelector('#mCopy').onclick=async()=>{try{await navigator.clipboard.writeText(shareText(r));toast('Copied. Challenge your friends!');}catch(e){toast('Couldn’t copy: select the text.');}};
       o.querySelector('#mM').onclick=()=>{closeModal();if(S.daily)S.daily.active=false;save();renderMenu();};
     });
