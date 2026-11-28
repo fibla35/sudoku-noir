@@ -485,6 +485,28 @@ body.saver .cstars span.on{animation:none}
 .gseg button.on{background:linear-gradient(#e8c15a,#b8860b);color:#1a1208;border-color:#5a3a08;box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
 .gnote{font-size:12px;color:#6d5d43}
 
+.albnew{background:rgba(184,134,11,.15);border:1px dashed #8a6a20;border-radius:8px;padding:6px 10px;font-size:14px;color:#3a2a10;animation:rise .4s .6s both}
+.albbar{margin:2px 0 0}
+.albtabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:2px}
+.albtabs button{flex:1 1 0;min-width:0;padding:6px 6px;border-radius:8px;border:1px solid rgba(120,90,50,.4);background:rgba(255,250,235,.45);color:#2a2018;font-weight:700;font-size:12px;line-height:1.1}
+.albtabs button small{display:block;font-weight:400;font-size:11px;color:#6d5d43}
+.albtabs button.on{background:linear-gradient(#e8c15a,#b8860b);border-color:#5a3a08}
+.albtabs button.on small{color:#3a2a10}
+.albtabs button.full:not(.on){border-color:#b8860b;box-shadow:inset 0 0 0 1px #e8c15a}
+.albgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.albcard{background:#f4ead2;border:1px solid #b9a27a;border-radius:4px;padding:5px 5px 4px;box-shadow:0 2px 4px rgba(0,0,0,.25);transform:rotate(-1deg);color:#2a2018;text-align:center}
+.albcard:nth-child(2n){transform:rotate(1.2deg)}
+.albcard:nth-child(3n){transform:rotate(-.4deg)}
+.albph{position:relative;aspect-ratio:1/1.08;overflow:hidden;border-radius:2px;background:#1a1612}
+.albph .por{width:100%;height:100%;object-fit:cover;display:block}
+.albph.off .por{filter:grayscale(1) brightness(.12) blur(1.5px)}
+.albq{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:900 40px 'Playfair Display',serif;color:#8a7650;text-shadow:0 2px 6px #000}
+.albn{position:absolute;right:3px;bottom:3px;background:#8b1a1a;color:#fff;font-size:11px;font-weight:700;border-radius:8px;padding:1px 6px}
+.albcard.got .albph::after{content:'CULPABLE';position:absolute;left:-4px;right:-4px;top:42%;transform:rotate(-14deg);border:2px solid rgba(160,25,25,.85);color:rgba(170,25,25,.9);font:900 12px 'Special Elite',monospace;letter-spacing:2px;background:rgba(255,240,220,.18);padding:1px 0}
+.albpl b{display:block;font-size:12px;letter-spacing:.5px;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.albpl small{display:block;font-size:11px;color:#6d5d43;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.saver .albnew{animation:none}
+
 </style>
 </head>
 <body>
@@ -1079,7 +1101,7 @@ function readSlot(n){try{const s=JSON.parse(localStorage.getItem(keyOf(n)));retu
 const SETK=['sound','music','rainFx','vib','saver','track','vmus','vsfx','gfx'];
 function switchSlot(n){if(n===SLOT)return;save();const keep={};SETK.forEach(k=>{if(k in S.meta)keep[k]=S.meta[k];});
   try{stopTimer();}catch(e){}SLOT=n;KEY=keyOf(n);try{localStorage.setItem(SLOTK,String(n));}catch(e){}
-  const s=readSlot(n);S=s?Object.assign(fresh(),s):fresh();if(!s)S.meta.tut=true;Object.assign(S.meta,keep);if(S.daily)S.daily.active=false;save();}
+  const s=readSlot(n);S=s?Object.assign(fresh(),s):fresh();Object.assign(S.meta,keep);if(S.daily)S.daily.active=false;save();}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 [S.run&&S.run.cs,S.daily&&S.daily.cs].forEach(cs=>{if(cs&&cs.C&&!cs.C.np)cs.C.np=cs.C.cells.length;});
 const rankOf=r=>{let x=RANKS[0];for(const k of RANKS)if(r>=k[0])x=k;return x;};
@@ -1120,7 +1142,7 @@ const RAW={};let idleT=0;
 function idleAudio(){clearTimeout(idleT);if(musicOn||!AC)return;idleT=setTimeout(()=>{if(!musicOn&&AC&&AC.state==='running'){try{AC.suspend();}catch(e){}}},4000);}
 function loadSounds(){if(sndLoading||!AC)return;sndLoading=true;
   const get=k=>fetch('assets/snd/'+k+'.mp3').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer();});
-  ['music_menu','music_case','music_boss','music_mist2','music_anim'].forEach(k=>get(k).then(ab=>{RAW[k]=ab;if(musicOn)playTrack();}).catch(()=>{}));
+  ['music_menu','music_case','music_boss','music_mist2','music_anim','music_pista'].forEach(k=>get(k).then(ab=>{RAW[k]=ab;if(musicOn)playTrack();}).catch(()=>{}));
   Object.keys(SNDV).forEach(k=>get(k).then(b=>new Promise((ok,ko)=>AC.decodeAudioData(b,ok,ko))).then(buf=>{SB[k]=buf;}).catch(()=>{}));}
 function playBuf(k){const b=SB[k];if(!b)return false;idleAudio();try{const s=AC.createBufferSource(),g=AC.createGain();s.buffer=b;g.gain.value=SNDV[k]||.6;s.connect(g);g.connect(SFX);s.start();}catch(e){return false;}return true;}
 function play(fn){if(!on('sound'))return;if(!ac())return;if(CURS&&playBuf(CURS))return;idleAudio();try{fn(AC.currentTime);}catch(e){}}
@@ -1153,9 +1175,10 @@ function scheduleMusic(){
 function ramp(g,v,t){g.gain.cancelScheduledValues(AC.currentTime);g.gain.setValueAtTime(g.gain.value,AC.currentTime);g.gain.linearRampToValueAtTime(v,AC.currentTime+t);}
 /* música: varias pistas grabadas según la pantalla (menú, caso, caso final) */
 let wantTrack='menu',curTrack=null;
-const MUSICS=[['case','Pasos en la sombra','por defecto'],['mist2','Niebla','más misterio'],['anim','Persecución','más animada'],['menu','Mansión 1926','misterio elegante']];
+const DEF_T='pista';
+const MUSICS=[['pista','Tras la pista','suave, de fondo'],['case','Pasos en la sombra','misterio clásico'],['mist2','Niebla','más misterio'],['anim','Persecución','más animada'],['menu','Mansión 1926','misterio elegante']];
 const hasT=t=>!!(RAW['music_'+t]||SB['music_'+t]);
-const pickTrack=()=>{const m=S.meta.track||'case';return wantTrack==='case'&&m!=='case'&&hasT(m)?m:wantTrack;};
+const pickTrack=()=>{const m=S.meta.track||DEF_T;return wantTrack==='case'&&m!=='case'&&hasT(m)?m:wantTrack;};
 const resolveT=t=>hasT(t)?t:(t==='boss'&&hasT('case'))?'case':hasT('menu')?'menu':hasT('case')?'case':null;
 let decoding=null;
 function freeMusic(keep){for(const k in SB)if(k.startsWith('music_')&&k!=='music_'+keep)delete SB[k];}
@@ -1253,6 +1276,7 @@ function renderMenu(){setBg('menu');
     ${(m.lvlMax||0)>0?`<button class="lvlbtn" id="bLvl"><span class="se">🎚️</span><span class="grow"><b>Dificultad: ${LVLS[Math.min(m.lvl||0,m.lvlMax)][0]}</b><small>${Math.min(m.lvl||0,m.lvlMax)?LVLS[Math.min(m.lvl||0,m.lvlMax)][1]+' Y todo lo anterior.':'Has desbloqueado el modo Imposible · toca para cambiar'}</small></span><span class="lvlmax">${m.lvlMax}/10</span></button>`:''}
     <button class="btn ${S.run?'':'gold'}" id="bNew">${ART.icon('folder')} Nueva investigación</button>
     <button class="btn" id="bDaily">${ART.icon('cal')} Caso del día ${playedToday?'✅':''}<span class="small" style="color:var(--gold);margin-left:auto">🔥 ${streak}</span></button>
+    <button class="btn ghost albbtn" id="bAlbum">📖 Álbum de culpables<span class="small" style="color:var(--gold);margin-left:auto">${albCount()}/${ALB_ALL.length}</span></button>
     <div class="row"><button class="btn ghost grow" id="bRelics">${ART.icon('bag')} Amuletos</button><button class="btn ghost grow" id="bHelp">${ART.icon('help')} Cómo jugar</button><button class="btn ghost" id="bCfg" aria-label="Ajustes">${ART.icon('cfg')}</button></div>
     <button class="btn ghost" id="bLives">${m.livesOn?'❤️ Modo con vidas: activado':'🕊️ Modo relajado: sin vidas'}<span class="small muted" style="margin-left:auto">cambiar</span></button>
     ${NATIVE?`<button class="btn ghost exitapp" id="bExit">${EXIT_IC} Salir del juego</button>`:''}
@@ -1264,6 +1288,7 @@ function renderMenu(){setBg('menu');
   $('#bTheme').onclick=showThemes;
   if($('#bLvl'))$('#bLvl').onclick=()=>{const mx=S.meta.lvlMax||0;S.meta.lvl=((Math.min(S.meta.lvl||0,mx))+1)%(mx+1);save();sfx.note();renderMenu();if(S.run)toast('Se aplica en tu próxima investigación.');};
   $('#bRelics').onclick=showRelics;
+  $('#bAlbum').onclick=()=>showAlbum();
   $('#bHelp').onclick=()=>tutorial(0);
   $('#bCfg').onclick=showSettings;
   $('#bLives').onclick=()=>{S.meta.livesOn=!S.meta.livesOn;save();renderMenu();toast(S.meta.livesOn?'❤️ Con vidas: cada acusación fallida cuesta una vida. Se aplica en tu próxima investigación.':'🕊️ Sin vidas: juega a tu ritmo. Se aplica en tu próxima investigación.',3200);};
@@ -1281,7 +1306,7 @@ function showThemes(){
 const SETIMG={sound:'sound',music:'music',rainSnd:'rain',rainFx:'rain',vib:'vib'};
 const SETTINGS=[['saver','🔋','Modo eco','Gasta menos batería: gráficos en bajo y música más ligera'],['sound','🔊','Efectos de sonido','Teclas, papel, sellos y monedas'],['music','🎷','Música','Banda sonora de misterio'],['rainFx','💧','Lluvia en pantalla','Gotas animadas sobre el juego'],['vib','📳','Vibración','Al colocar, fallar y acertar']];
 function showSettings(){
-  const draw=o=>{const mt=MUSICS.find(x=>x[0]===(S.meta.track||'case'))||MUSICS[0];o.querySelector('#musPick').innerHTML=`<span class="se">🎵</span><span class="grow"><b>Música en partida: ${mt[1]}</b><small>${mt[2]} · toca para cambiar</small></span>`;o.querySelector('#setList').innerHTML=SETTINGS.map(([k,e,n,d])=>`<button class="setrow" data-k="${k}"><span class="se">${k==='saver'?e:SETIMG[k]?ART.icon(SETIMG[k]):e}</span><span class="grow"><b>${n}</b><small>${d}</small></span><span class="sw ${on(k)?'on':''}"><i></i></span></button>`).join('');
+  const draw=o=>{const mt=MUSICS.find(x=>x[0]===(S.meta.track||DEF_T))||MUSICS[0];o.querySelector('#musPick').innerHTML=`<span class="se">🎵</span><span class="grow"><b>Música en partida: ${mt[1]}</b><small>${mt[2]} · toca para cambiar</small></span>`;o.querySelector('#setList').innerHTML=SETTINGS.map(([k,e,n,d])=>`<button class="setrow" data-k="${k}"><span class="se">${k==='saver'?e:SETIMG[k]?ART.icon(SETIMG[k]):e}</span><span class="grow"><b>${n}</b><small>${d}</small></span><span class="sw ${on(k)?'on':''}"><i></i></span></button>`).join('');
     const g=gfx();o.querySelectorAll('#gSeg button').forEach(b=>b.classList.toggle('on',b.dataset.g===g));o.querySelector('#gNote').textContent=saver()?'Modo eco activado: se usan gráficos bajos':g==='alto'?'Lluvia densa y fluida, desenfoques y todas las animaciones':g==='medio'?'Equilibrado: lluvia ligera y animaciones, sin desenfoques':'Sin lluvia ni grano: lo más fluido y lo que menos batería gasta';
     [['vMus','vmus'],['vSfx','vsfx']].forEach(([id,k])=>{const i=o.querySelector('#'+id);i.value=vol(k);o.querySelector('#'+id+'N').textContent=vol(k)+'%';i.style.setProperty('--p',vol(k)+'%');});
     o.querySelectorAll('#setList .setrow').forEach(b=>b.onclick=()=>{const k=b.dataset.k;S.meta[k]=!(k==='saver'?saver():on(k));save();if(k==='saver'||k==='rainFx')applySaver();if(k==='music'||k==='rainSnd'||k==='sound')applyAudio();if(k==='sound'&&on('sound'))sfx.note();draw(o);});};
@@ -1295,7 +1320,7 @@ function showSettings(){
       i.onchange=()=>{save();if(k==='vsfx'&&on('sound'))sfx.note();};});
     o.querySelectorAll('#gSeg button').forEach(b=>b.onclick=()=>{const g=b.dataset.g;S.meta.gfx=g;if(g!=='bajo'&&saver()){S.meta.saver=false;toast('🔋 Modo eco desactivado');}save();applySaver();draw(o);});
     o.querySelector('#bLang').onclick=()=>{save();try{localStorage.setItem('sn_lang',(window.LANG||'es')==='es'?'en':'es');}catch(e){}location.reload();};
-    o.querySelector('#musPick').onclick=()=>{const avail=MUSICS.filter(x=>x[0]==='case'||hasT(x[0])||!AC);const i=avail.findIndex(x=>x[0]===(S.meta.track||'case'));S.meta.track=avail[(i+1)%avail.length][0];save();if(!on('music')){S.meta.music=true;applyAudio();}else playTrack();draw(o);};
+    o.querySelector('#musPick').onclick=()=>{const avail=MUSICS.filter(x=>x[0]==='case'||x[0]===DEF_T||hasT(x[0])||!AC);const i=avail.findIndex(x=>x[0]===(S.meta.track||DEF_T));S.meta.track=avail[(i+1)%avail.length][0];save();if(!on('music')){S.meta.music=true;applyAudio();}else playTrack();draw(o);};
     o.querySelector('#allOff').onclick=()=>{['sound','music','rainSnd'].forEach(k=>S.meta[k]=false);save();applyAudio();draw(o);toast('🔇 Todo el sonido desactivado');};});
 }
 function showSlots(){
@@ -1705,6 +1730,36 @@ function openAccuse(){
     loseLife('❌ Acusación equivocada. Pierdes 1 vida.');
   };
 }
+/* ---------- Álbum de culpables ---------- */
+const ALB_PAGES=[['mansion','Mansión',[1,2,3,4,5,6,26,27,28,29,30,31,32,33]],['tren','Tren',CAST_T.tren],['barco','Barco',CAST_T.barco],['mina','Mina',CAST_T.mina],['prof','Profesor',[7]]];
+const ALB_ALL=ALB_PAGES.flatMap(p=>p[2]);const ALB_BONUS=25;
+const albName=p=>p[0]==='prof'?'Archienemigo':THEMES[p[0]].name;
+const caught=id=>(S.meta.caught||{})[id];
+const albCount=()=>ALB_ALL.filter(id=>caught(id)).length;
+function recordCatch(id,title){
+  const m=S.meta;m.caught=m.caught||{};m.albPages=m.albPages||{};
+  const first=!m.caught[id];m.caught[id]=m.caught[id]||{n:0,t:title||''};m.caught[id].n++;
+  if(!first){save();return null;}
+  let page=null;for(const p of ALB_PAGES)if(p[2].includes(id)&&!m.albPages[p[0]]&&p[2].every(x=>m.caught[x])){m.albPages[p[0]]=1;m.rep+=ALB_BONUS;page=albName(p);}
+  save();return{page};
+}
+function showAlbum(tab){
+  const pi=Math.max(0,ALB_PAGES.findIndex(p=>p[0]===(tab||'mansion')));const P=ALB_PAGES[pi];
+  const n=albCount(),tot=ALB_ALL.length;
+  const card=id=>{const c=caught(id),s=SUS[id];return c?`<button class="albcard got" data-id="${id}"><div class="albph">${ART.portrait(id)}${c.n>1?`<span class="albn">×${c.n}</span>`:''}</div><div class="albpl"><b>${id===7?'EL PROFESOR':s.n.toUpperCase()}</b><small>${cap(s.r)}</small></div></button>`
+    :`<div class="albcard"><div class="albph off">${ART.portrait(id)}<span class="albq">?</span></div><div class="albpl"><b>???</b><small>Sin fichar</small></div></div>`;};
+  modal(`<div class="paper tape col"><div class="serif center" style="font-size:22px">📖 Álbum de culpables</div>
+    <div class="small center" style="color:#6d5d43">Cada asesino que atrapas queda fichado aquí. Completa una página: <b>+${ALB_BONUS} ⭐ reputación</b>.</div>
+    <div class="bar albbar"><i style="width:${Math.round(n/tot*100)}%"></i></div><div class="small center"><b>${n}/${tot}</b> culpables fichados</div>
+    <div class="albtabs">${ALB_PAGES.map((p,i)=>{const k=p[2].filter(x=>caught(x)).length,full=k===p[2].length;return`<button class="${i===pi?'on':''} ${full?'full':''}" data-t="${p[0]}">${p[1]}<small>${full?'✔':k+'/'+p[2].length}</small></button>`;}).join('')}</div>
+    <div class="albgrid">${P[2].map(card).join('')}</div>
+    <button class="btn gold" id="albOk">Cerrar</button></div>`,o=>{
+    o.querySelector('#albOk').onclick=closeModal;
+    o.querySelectorAll('.albtabs button').forEach(b=>b.onclick=()=>{sfx.note();showAlbum(b.dataset.t);});
+    o.querySelectorAll('.albcard.got').forEach(b=>b.onclick=()=>{const id=+b.dataset.id,c=caught(id),s=SUS[id];sfx.note();
+      toast(`${id===7?'El Profesor':`${s.n}, ${s.r}`} · atrapado ${c.n} ${c.n===1?'vez':'veces'}${c.t?` · primera vez: «${c.t}»`:''}`,3200);});
+  });
+}
 function verdictHTML(cs){
   const C=cs.C,id=C.cast[C.murderer-1],pl=C.roomIds[C.victimRoom],s=SUS[id],P2=plc(C.theme,pl);
   return`<div class="lineupbg"><div class="mugshot"><div class="frame">${ART.portrait(id)}<div class="plate">${s.n.toUpperCase()} · CULPABLE</div>${ART.img('st_culpable','culpst')}</div><div class="polaroid"><div class="ph">${ART.placePhoto(pl,C.theme)}</div><div class="cap">${P2.n}</div></div></div></div>
@@ -1720,7 +1775,8 @@ function solveCase(left){
   cs.done=true;cs.placed=C.cells.slice();stopTimer();sfx.win();buzz([30,30,30]);
   update();
   const br=$('#board').getBoundingClientRect();sparks(br.left+br.width/2,br.top+br.height/2,30);
-  if(daily){finishDaily(left);return;}
+  const albNew=recordCatch(C.cast[C.murderer-1],cs.meta.title);
+  if(daily){finishDaily(left);if(albNew)setTimeout(()=>toast('📸 Nueva ficha en tu Álbum de culpables',2600),1400);return;}
   const r=S.run,fl=cs.meta.floor;
   const base=8+2*fl, early=left*3*(has('interrogatorio')?2:1), perfect=cs.wrongAcc===0?5:0, rach=has('racha')?good*2:0;
   cs.racha=rach;
@@ -1737,6 +1793,7 @@ function solveCase(left){
       ${verdictHTML(cs)}
       <div><span class="stamp stimg slam">${ART.img('st_cerrado')}</span></div>
       ${starsHTML(stars,true)}<div class="small starkey">★ resuelto · ★ sin pistas · ★ sin fallos al acusar</div>
+      ${albNew?`<div class="albnew">📸 Nueva ficha en tu Álbum de culpables${albNew.page?`<br><b>📖 ¡Página «${albNew.page}» completa! +${ALB_BONUS} ⭐</b>`:''}</div>`:''}
       <div style="text-align:left">
         <div class="kv"><span>Caso resuelto</span><b>+${base}</b></div>
         <div class="kv"><span>Acusación anticipada (${left} sin situar)</span><b>+${early}</b></div>
@@ -2524,7 +2581,7 @@ function readSlot(n){try{const s=JSON.parse(localStorage.getItem(keyOf(n)));retu
 const SETK=['sound','music','rainFx','vib','saver','track','vmus','vsfx','gfx'];
 function switchSlot(n){if(n===SLOT)return;save();const keep={};SETK.forEach(k=>{if(k in S.meta)keep[k]=S.meta[k];});
   try{stopTimer();}catch(e){}SLOT=n;KEY=keyOf(n);try{localStorage.setItem(SLOTK,String(n));}catch(e){}
-  const s=readSlot(n);S=s?Object.assign(fresh(),s):fresh();if(!s)S.meta.tut=true;Object.assign(S.meta,keep);if(S.daily)S.daily.active=false;save();}
+  const s=readSlot(n);S=s?Object.assign(fresh(),s):fresh();Object.assign(S.meta,keep);if(S.daily)S.daily.active=false;save();}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
 [S.run&&S.run.cs,S.daily&&S.daily.cs].forEach(cs=>{if(cs&&cs.C&&!cs.C.np)cs.C.np=cs.C.cells.length;});
 const rankOf=r=>{let x=RANKS[0];for(const k of RANKS)if(r>=k[0])x=k;return x;};
@@ -2565,7 +2622,7 @@ const RAW={};let idleT=0;
 function idleAudio(){clearTimeout(idleT);if(musicOn||!AC)return;idleT=setTimeout(()=>{if(!musicOn&&AC&&AC.state==='running'){try{AC.suspend();}catch(e){}}},4000);}
 function loadSounds(){if(sndLoading||!AC)return;sndLoading=true;
   const get=k=>fetch('assets/snd/'+k+'.mp3').then(r=>{if(!r.ok)throw 0;return r.arrayBuffer();});
-  ['music_menu','music_case','music_boss','music_mist2','music_anim'].forEach(k=>get(k).then(ab=>{RAW[k]=ab;if(musicOn)playTrack();}).catch(()=>{}));
+  ['music_menu','music_case','music_boss','music_mist2','music_anim','music_pista'].forEach(k=>get(k).then(ab=>{RAW[k]=ab;if(musicOn)playTrack();}).catch(()=>{}));
   Object.keys(SNDV).forEach(k=>get(k).then(b=>new Promise((ok,ko)=>AC.decodeAudioData(b,ok,ko))).then(buf=>{SB[k]=buf;}).catch(()=>{}));}
 function playBuf(k){const b=SB[k];if(!b)return false;idleAudio();try{const s=AC.createBufferSource(),g=AC.createGain();s.buffer=b;g.gain.value=SNDV[k]||.6;s.connect(g);g.connect(SFX);s.start();}catch(e){return false;}return true;}
 function play(fn){if(!on('sound'))return;if(!ac())return;if(CURS&&playBuf(CURS))return;idleAudio();try{fn(AC.currentTime);}catch(e){}}
@@ -2598,9 +2655,10 @@ function scheduleMusic(){
 function ramp(g,v,t){g.gain.cancelScheduledValues(AC.currentTime);g.gain.setValueAtTime(g.gain.value,AC.currentTime);g.gain.linearRampToValueAtTime(v,AC.currentTime+t);}
 /* música: varias pistas grabadas según la pantalla (menú, caso, caso final) */
 let wantTrack='menu',curTrack=null;
-const MUSICS=[['case','Footsteps in the Shadows','default'],['mist2','Fog','more mystery'],['anim','Pursuit','more upbeat'],['menu','Mansion 1926','elegant mystery']];
+const DEF_T='pista';
+const MUSICS=[['pista','On the Trail','soft, in the background'],['case','Footsteps in the Shadows','classic mystery'],['mist2','Fog','more mystery'],['anim','Pursuit','more upbeat'],['menu','Mansion 1926','elegant mystery']];
 const hasT=t=>!!(RAW['music_'+t]||SB['music_'+t]);
-const pickTrack=()=>{const m=S.meta.track||'case';return wantTrack==='case'&&m!=='case'&&hasT(m)?m:wantTrack;};
+const pickTrack=()=>{const m=S.meta.track||DEF_T;return wantTrack==='case'&&m!=='case'&&hasT(m)?m:wantTrack;};
 const resolveT=t=>hasT(t)?t:(t==='boss'&&hasT('case'))?'case':hasT('menu')?'menu':hasT('case')?'case':null;
 let decoding=null;
 function freeMusic(keep){for(const k in SB)if(k.startsWith('music_')&&k!=='music_'+keep)delete SB[k];}
@@ -2698,6 +2756,7 @@ function renderMenu(){setBg('menu');
     ${(m.lvlMax||0)>0?`<button class="lvlbtn" id="bLvl"><span class="se">🎚️</span><span class="grow"><b>Difficulty: ${LVLS[Math.min(m.lvl||0,m.lvlMax)][0]}</b><small>${Math.min(m.lvl||0,m.lvlMax)?LVLS[Math.min(m.lvl||0,m.lvlMax)][1]+' Plus everything before.':'You’ve unlocked Impossible mode · tap to change'}</small></span><span class="lvlmax">${m.lvlMax}/10</span></button>`:''}
     <button class="btn ${S.run?'':'gold'}" id="bNew">${ART.icon('folder')} New investigation</button>
     <button class="btn" id="bDaily">${ART.icon('cal')} Case of the Day ${playedToday?'✅':''}<span class="small" style="color:var(--gold);margin-left:auto">🔥 ${streak}</span></button>
+    <button class="btn ghost albbtn" id="bAlbum">📖 Rogues’ Gallery<span class="small" style="color:var(--gold);margin-left:auto">${albCount()}/${ALB_ALL.length}</span></button>
     <div class="row"><button class="btn ghost grow" id="bRelics">${ART.icon('bag')} Charms</button><button class="btn ghost grow" id="bHelp">${ART.icon('help')} How to play</button><button class="btn ghost" id="bCfg" aria-label="Settings">${ART.icon('cfg')}</button></div>
     <button class="btn ghost" id="bLives">${m.livesOn?'❤️ Lives mode: on':'🕊️ Relaxed mode: no lives'}<span class="small muted" style="margin-left:auto">change</span></button>
     ${NATIVE?`<button class="btn ghost exitapp" id="bExit">${EXIT_IC} Exit game</button>`:''}
@@ -2709,6 +2768,7 @@ function renderMenu(){setBg('menu');
   $('#bTheme').onclick=showThemes;
   if($('#bLvl'))$('#bLvl').onclick=()=>{const mx=S.meta.lvlMax||0;S.meta.lvl=((Math.min(S.meta.lvl||0,mx))+1)%(mx+1);save();sfx.note();renderMenu();if(S.run)toast('Applies to your next investigation.');};
   $('#bRelics').onclick=showRelics;
+  $('#bAlbum').onclick=()=>showAlbum();
   $('#bHelp').onclick=()=>tutorial(0);
   $('#bCfg').onclick=showSettings;
   $('#bLives').onclick=()=>{S.meta.livesOn=!S.meta.livesOn;save();renderMenu();toast(S.meta.livesOn?'❤️ Lives on: each wrong accusation costs a life. Applies to your next investigation.':'🕊️ No lives: play at your own pace. Applies to your next investigation.',3200);};
@@ -2726,7 +2786,7 @@ function showThemes(){
 const SETIMG={sound:'sound',music:'music',rainSnd:'rain',rainFx:'rain',vib:'vib'};
 const SETTINGS=[['saver','🔋','Eco mode','Uses less battery: low graphics and lighter music'],['sound','🔊','Sound effects','Keys, paper, stamps and coins'],['music','🎷','Music','Mystery soundtrack'],['rainFx','💧','On-screen rain','Animated raindrops over the game'],['vib','📳','Vibration','When placing, failing and succeeding']];
 function showSettings(){
-  const draw=o=>{const mt=MUSICS.find(x=>x[0]===(S.meta.track||'case'))||MUSICS[0];o.querySelector('#musPick').innerHTML=`<span class="se">🎵</span><span class="grow"><b>In-game music: ${mt[1]}</b><small>${mt[2]} · tap to change</small></span>`;o.querySelector('#setList').innerHTML=SETTINGS.map(([k,e,n,d])=>`<button class="setrow" data-k="${k}"><span class="se">${k==='saver'?e:SETIMG[k]?ART.icon(SETIMG[k]):e}</span><span class="grow"><b>${n}</b><small>${d}</small></span><span class="sw ${on(k)?'on':''}"><i></i></span></button>`).join('');
+  const draw=o=>{const mt=MUSICS.find(x=>x[0]===(S.meta.track||DEF_T))||MUSICS[0];o.querySelector('#musPick').innerHTML=`<span class="se">🎵</span><span class="grow"><b>In-game music: ${mt[1]}</b><small>${mt[2]} · tap to change</small></span>`;o.querySelector('#setList').innerHTML=SETTINGS.map(([k,e,n,d])=>`<button class="setrow" data-k="${k}"><span class="se">${k==='saver'?e:SETIMG[k]?ART.icon(SETIMG[k]):e}</span><span class="grow"><b>${n}</b><small>${d}</small></span><span class="sw ${on(k)?'on':''}"><i></i></span></button>`).join('');
     const g=gfx();o.querySelectorAll('#gSeg button').forEach(b=>b.classList.toggle('on',b.dataset.g===g));o.querySelector('#gNote').textContent=saver()?'Eco mode on: low graphics in use':g==='alto'?'Dense, smooth rain, blur effects and all animations':g==='medio'?'Balanced: light rain and animations, no blur':'No rain or grain: smoothest and lightest on battery';
     [['vMus','vmus'],['vSfx','vsfx']].forEach(([id,k])=>{const i=o.querySelector('#'+id);i.value=vol(k);o.querySelector('#'+id+'N').textContent=vol(k)+'%';i.style.setProperty('--p',vol(k)+'%');});
     o.querySelectorAll('#setList .setrow').forEach(b=>b.onclick=()=>{const k=b.dataset.k;S.meta[k]=!(k==='saver'?saver():on(k));save();if(k==='saver'||k==='rainFx')applySaver();if(k==='music'||k==='rainSnd'||k==='sound')applyAudio();if(k==='sound'&&on('sound'))sfx.note();draw(o);});};
@@ -2740,7 +2800,7 @@ function showSettings(){
       i.onchange=()=>{save();if(k==='vsfx'&&on('sound'))sfx.note();};});
     o.querySelectorAll('#gSeg button').forEach(b=>b.onclick=()=>{const g=b.dataset.g;S.meta.gfx=g;if(g!=='bajo'&&saver()){S.meta.saver=false;toast('🔋 Eco mode turned off');}save();applySaver();draw(o);});
     o.querySelector('#bLang').onclick=()=>{save();try{localStorage.setItem('sn_lang',(window.LANG||'es')==='es'?'en':'es');}catch(e){}location.reload();};
-    o.querySelector('#musPick').onclick=()=>{const avail=MUSICS.filter(x=>x[0]==='case'||hasT(x[0])||!AC);const i=avail.findIndex(x=>x[0]===(S.meta.track||'case'));S.meta.track=avail[(i+1)%avail.length][0];save();if(!on('music')){S.meta.music=true;applyAudio();}else playTrack();draw(o);};
+    o.querySelector('#musPick').onclick=()=>{const avail=MUSICS.filter(x=>x[0]==='case'||x[0]===DEF_T||hasT(x[0])||!AC);const i=avail.findIndex(x=>x[0]===(S.meta.track||DEF_T));S.meta.track=avail[(i+1)%avail.length][0];save();if(!on('music')){S.meta.music=true;applyAudio();}else playTrack();draw(o);};
     o.querySelector('#allOff').onclick=()=>{['sound','music','rainSnd'].forEach(k=>S.meta[k]=false);save();applyAudio();draw(o);toast('🔇 All sound off');};});
 }
 function showSlots(){
@@ -3150,6 +3210,36 @@ function openAccuse(){
     loseLife('❌ Wrong accusation. You lose 1 life.');
   };
 }
+/* ---------- Álbum de culpables ---------- */
+const ALB_PAGES=[['mansion','Mansion',[1,2,3,4,5,6,26,27,28,29,30,31,32,33]],['tren','Train',CAST_T.tren],['barco','Ship',CAST_T.barco],['mina','Mine',CAST_T.mina],['prof','Professor',[7]]];
+const ALB_ALL=ALB_PAGES.flatMap(p=>p[2]);const ALB_BONUS=25;
+const albName=p=>p[0]==='prof'?'Archenemy':THEMES[p[0]].name;
+const caught=id=>(S.meta.caught||{})[id];
+const albCount=()=>ALB_ALL.filter(id=>caught(id)).length;
+function recordCatch(id,title){
+  const m=S.meta;m.caught=m.caught||{};m.albPages=m.albPages||{};
+  const first=!m.caught[id];m.caught[id]=m.caught[id]||{n:0,t:title||''};m.caught[id].n++;
+  if(!first){save();return null;}
+  let page=null;for(const p of ALB_PAGES)if(p[2].includes(id)&&!m.albPages[p[0]]&&p[2].every(x=>m.caught[x])){m.albPages[p[0]]=1;m.rep+=ALB_BONUS;page=albName(p);}
+  save();return{page};
+}
+function showAlbum(tab){
+  const pi=Math.max(0,ALB_PAGES.findIndex(p=>p[0]===(tab||'mansion')));const P=ALB_PAGES[pi];
+  const n=albCount(),tot=ALB_ALL.length;
+  const card=id=>{const c=caught(id),s=SUS[id];return c?`<button class="albcard got" data-id="${id}"><div class="albph">${ART.portrait(id)}${c.n>1?`<span class="albn">×${c.n}</span>`:''}</div><div class="albpl"><b>${id===7?'THE PROFESSOR':s.n.toUpperCase()}</b><small>${cap(s.r)}</small></div></button>`
+    :`<div class="albcard"><div class="albph off">${ART.portrait(id)}<span class="albq">?</span></div><div class="albpl"><b>???</b><small>Not filed</small></div></div>`;};
+  modal(`<div class="paper tape col"><div class="serif center" style="font-size:22px">📖 Rogues’ Gallery</div>
+    <div class="small center" style="color:#6d5d43">Every killer you catch is filed here. Complete a page: <b>+${ALB_BONUS} ⭐ reputation</b>.</div>
+    <div class="bar albbar"><i style="width:${Math.round(n/tot*100)}%"></i></div><div class="small center"><b>${n}/${tot}</b> culprits filed</div>
+    <div class="albtabs">${ALB_PAGES.map((p,i)=>{const k=p[2].filter(x=>caught(x)).length,full=k===p[2].length;return`<button class="${i===pi?'on':''} ${full?'full':''}" data-t="${p[0]}">${p[1]}<small>${full?'✔':k+'/'+p[2].length}</small></button>`;}).join('')}</div>
+    <div class="albgrid">${P[2].map(card).join('')}</div>
+    <button class="btn gold" id="albOk">Close</button></div>`,o=>{
+    o.querySelector('#albOk').onclick=closeModal;
+    o.querySelectorAll('.albtabs button').forEach(b=>b.onclick=()=>{sfx.note();showAlbum(b.dataset.t);});
+    o.querySelectorAll('.albcard.got').forEach(b=>b.onclick=()=>{const id=+b.dataset.id,c=caught(id),s=SUS[id];sfx.note();
+      toast(`${id===7?'The Professor':`${s.n}, ${s.r}`} · caught ${c.n} ${c.n===1?'time':'times'}${c.t?` · first time: «${c.t}»`:''}`,3200);});
+  });
+}
 function verdictHTML(cs){
   const C=cs.C,id=C.cast[C.murderer-1],pl=C.roomIds[C.victimRoom],s=SUS[id],P2=plc(C.theme,pl);
   return`<div class="lineupbg"><div class="mugshot"><div class="frame">${ART.portrait(id)}<div class="plate">${s.n.toUpperCase()} · GUILTY</div></div><div class="polaroid"><div class="ph">${ART.placePhoto(pl,C.theme)}</div><div class="cap">${P2.n}</div></div></div></div>
@@ -3165,7 +3255,8 @@ function solveCase(left){
   cs.done=true;cs.placed=C.cells.slice();stopTimer();sfx.win();buzz([30,30,30]);
   update();
   const br=$('#board').getBoundingClientRect();sparks(br.left+br.width/2,br.top+br.height/2,30);
-  if(daily){finishDaily(left);return;}
+  const albNew=recordCatch(C.cast[C.murderer-1],cs.meta.title);
+  if(daily){finishDaily(left);if(albNew)setTimeout(()=>toast('📸 New file in your Rogues’ Gallery',2600),1400);return;}
   const r=S.run,fl=cs.meta.floor;
   const base=8+2*fl, early=left*3*(has('interrogatorio')?2:1), perfect=cs.wrongAcc===0?5:0, rach=has('racha')?good*2:0;
   cs.racha=rach;
@@ -3182,6 +3273,7 @@ function solveCase(left){
       ${verdictHTML(cs)}
       <div><span class="stamp slam">CASE CLOSED</span></div>
       ${starsHTML(stars,true)}<div class="small starkey">★ solved · ★ no hints · ★ no wrong accusations</div>
+      ${albNew?`<div class="albnew">📸 New file in your Rogues’ Gallery${albNew.page?`<br><b>📖 Page «${albNew.page}» complete! +${ALB_BONUS} ⭐</b>`:''}</div>`:''}
       <div style="text-align:left">
         <div class="kv"><span>Case solved</span><b>+${base}</b></div>
         <div class="kv"><span>Early accusation (${left} unplaced)</span><b>+${early}</b></div>
